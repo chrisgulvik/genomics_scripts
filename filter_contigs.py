@@ -14,7 +14,7 @@ def parseArgs():
 		epilog='NOTE: headers in IDBA contigs must have spaces removed or replaced with a non-whitespace character')
 	parser.add_argument('-i', '--infile',
 		required=True, help='input FastA file from SPAdes or Velvet')
-	parser.add_argument('-o', '--outfile', help='output FastA file [basename.filtered.infile_ext]')
+	parser.add_argument('-o', '--outfilename', help='output FastA filename [basename.filtered.infile_ext]')
 	parser.add_argument('-p', '--outpath', help='output path [cwd of input file]')
 	parser.add_argument('-c', '--cov', type=int, default=5,
 		help='minimum coverage (for SPAdes and Velvet) or minimum read count (for IDBA) [5]')
@@ -77,7 +77,7 @@ def complexity_filter(record, complexity):
 def main():
 	args = parseArgs()
 	infile = args.infile
-	outfile = args.outfile
+	outfilename = args.outfilename
 	outpath = args.outpath
 	min_cov = args.cov
 	min_len = args.len
@@ -85,14 +85,16 @@ def main():
 	complexity = args.complex
 
 	in_ext = os.path.splitext(os.path.basename(infile))[-1]
-	if outfile is None:
+	if outfilename is None:
 		out_ext = '.filtered' + in_ext
 		base = os.path.splitext(os.path.basename(infile))[0]
-		outfile = base + out_ext
+		outfilename = base + out_ext
 	if outpath is None:
 		outpath = os.path.dirname(infile)
 
-	with open(outfile, 'w') as filtered_fasta:
+	out = os.path.join(outpath, outfilename)
+
+	with open(out, 'w') as filtered_fasta:
 		with open(infile, 'rU') as input_fasta:
 			for record in SeqIO.parse(input_fasta, 'fasta'):
 				class_name = type(record)  #'Bio.SeqRecord.SeqRecord'
