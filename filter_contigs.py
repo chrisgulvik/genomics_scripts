@@ -6,6 +6,7 @@ import os
 import re
 import sys
 from Bio import SeqIO
+from Bio import SeqRecord
 from Bio.SeqUtils import GC
 
 
@@ -14,6 +15,7 @@ def parseArgs():
 		epilog='NOTE: headers in IDBA contigs must have spaces removed or replaced with a non-whitespace character')
 	parser.add_argument('-i', '--infile',
 		required=True, help='input FastA file from SPAdes or Velvet')
+	parser.add_argument('-b', '--baseheader', help='contig header prefix (with \'_#\' as suffix) [basename]')
 	parser.add_argument('-o', '--outfilename', help='output FastA filename [basename.filtered.infile_ext]')
 	parser.add_argument('-p', '--outpath', help='output path [cwd of input file]')
 	parser.add_argument('-c', '--cov', type=int, default=5,
@@ -78,6 +80,7 @@ def main():
 	args = parseArgs()
 	infile = args.infile
 	outfilename = args.outfilename
+	baseheader = args.baseheader
 	outpath = args.outpath
 	min_cov = args.cov
 	min_len = args.len
@@ -91,16 +94,21 @@ def main():
 		outfilename = base + out_ext
 	if outpath is None:
 		outpath = os.path.dirname(infile)
+	if baseheader is None:
+		baseheader = os.path.splitext(os.path.basename(infile))[0]
 
 	out = os.path.join(outpath, outfilename)
 
 	with open(out, 'w') as filtered_fasta:
 		with open(infile, 'rU') as input_fasta:
+			i = 1
 			for record in SeqIO.parse(input_fasta, 'fasta'):
 				class_name = type(record)  #'Bio.SeqRecord.SeqRecord'
 				r = filter_contig(record, min_len, min_cov, gc, complexity)
 				if isinstance(r, class_name):
-					SeqIO.write(r, filtered_fasta, 'fasta')
+					renamed_rec = SeqRecord.SeqRecord(id='{}_{}'.format(baseheader, i), seq=r.seq, description='')
+					SeqIO.write(renamed_rec, filtered_fasta, 'fasta')
+					i += 1
 
 if __name__ == '__main__':
 	main()
