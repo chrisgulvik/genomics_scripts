@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-function usage() { 
+function usage { 
 	echo "
 	Given a FastA file, identifies repetitive regions, and outputs a BED file
 
@@ -70,6 +70,7 @@ done
 [[ ! -e "$REF" || ! -s "$REF" ]] && { echo "ERROR: $REF cannot be read"; exit 1; }
 command -v nucmer >/dev/null 2>&1 || { echo 'ERROR: nucmer not found' >&2; exit 1; }
 command -v show-coords >/dev/null 2>&1 || { echo 'ERROR: show-coords not found' >&2; exit 1; }
+command -v bedtools >/dev/null 2>&1 || { echo 'ERROR: bedtools not found' >&2; exit 1; }
 
 # Create tmp dir (if absent)
 if [ ! -d "$TMP" ]; then
