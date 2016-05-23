@@ -8,8 +8,8 @@
 
 - **find_dupes.bash**: given a FastA file, identifies repetitive regions, and outputs a BED file; flexible opts for defining repetitive sites; depends on BEDTools and MUMmer (nucmer)
 
-- **
+***
 
-#### Cleaning up disk space
+# Cleaning up disk space
 - BLAST searching requires index files that can be easily and quickly re-generated, so remove all leftover binary files within the Desktop dir: `find ~/Desktop -type f -regextype posix-extended -regex '.*\.(nih|nin|nsq|psi|psq)' -print | xargs rm -v`
 - SPAdes keeps a lot of intermediate files, so delete these but keep essential log and FastA files to repeat the assembly if necessary: `bash ~/genomics_scripts/prune_SPAdes_assembly_dirs.bash ~/Desktop`
