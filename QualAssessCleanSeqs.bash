@@ -16,6 +16,9 @@ usage() {
 if [[ "$1" == "" || "$1" == "--help" || "$1" == "-h" ]]; then
 	usage
 	exit 1
+elif [[ "$1" == "-v" || "$1" == "--version" ]]; then
+	echo 'v1.1'
+	exit 0
 fi
 
 #Require 4 arguments
