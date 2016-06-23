@@ -3,31 +3,26 @@
 
 import os
 import re
-import shutil
 import sys
+import time
 from Bio import Entrez
 
 def multi_gbk(acc_list, gbk):
-	# time.sleep(3)  #be nice to NCBI
-	# fetched = Entrez.efetch(db='nucleotide', id=acc_list, rettype='gbwithparts', retmode='text').read()
-	# for record in fetched.split('//\n'):
-	# 	if wgs_acc_list[0] not in record:
-	# 		sys.exit('ERROR: improperly retrieved accession {}'.format(wgs_acc_list[0]))
-	# 	del wgs_acc_list[0]
-	# with open(gbk, 'w') as of:
-	# 	of.write(fetched)
-	for acc in acc_list:
-		url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&id={}&rettype=gbwithparts&retmode=gb'.format(acc)
-		os.system('wget --no-glob -O {} {}'.format(acc + '.gbk.tmp', url))
-		if acc not in open(acc + '.gbk.tmp', 'r').read():
-			sys.exit('ERROR: unable to find {} in retrieved gbk.tmp file'.format(acc))
-	with open(gbk, 'w') as outfile:
-		for f in [s + '.gbk.tmp' for s in acc_list]:
-			with open(f, 'r') as contig:
-				shutil.copyfileobj(contig, outfile)
-				os.remove(f)
+	fetched = Entrez.efetch(db='nucleotide', id=acc_list, rettype='gbwithparts', retmode='text').read().rstrip('\n')
+	print 'found {} GenBank records'.format(str(len(fetched.split('//\n\n'))))
 	if len(fetched) < 7500:
 		sys.exit('ERROR: suspiciously short GenBank record')
+	contigs = []
+	for record in fetched.split('\n\n'):
+		if acc_list[0] not in record:
+			sys.exit('ERROR: improperly retrieved accession {}'.format(acc_list[0]))
+		del acc_list[0]
+		contig = record.rstrip('\n').split('\n')
+		i = contig.index('ORIGIN      ')
+		contig.insert(i, 'CONTIG')  #adding this line to multigenbank style enables biopython to parse in seqio as gb
+		contigs.extend(contig)
+	with open(gbk, 'w') as of:
+		of.write('\n'.join(s for s in contigs))
 
 def get_gbk(accession, gbk):
 	fetched = Entrez.efetch(db='nucleotide', id=accession, rettype='gbwithparts', retmode='text').read()
@@ -44,8 +39,10 @@ def get_gbk(accession, gbk):
 				wgs_acc_suff_first = int(re.sub('\D', '', wgs_accs[0]))
 				wgs_acc_suff_last  = int(re.sub('\D', '', wgs_accs[1]))
 				acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last, 1)
-				wgs_acc_list = [wgs_acc_pref_first + str(s) for s in acc_suffs]
+				wgs_acc_list = [wgs_acc_pref_first + str('{num:08d}'.format(num=s)) for s in acc_suffs]
 				print '\t{} accession is an incomplete chromosome.\n\tRetrieving {} individual contigs...'.format(accession, str(len(wgs_acc_list)))
+				time.sleep(3)  #be nice to NCBI before doing a second efetch request
+				print wgs_acc_list
 				multi_gbk(wgs_acc_list, gbk)
 	elif len(fetched) < 7500:
 		sys.exit('{}\nERROR: suspiciously short record for {}'.format(fetched, accession))
@@ -55,14 +52,14 @@ def get_gbk(accession, gbk):
 		print '\tfound {}'.format(accession)
 
 def main():
+	if len(sys.argv) == 1 or sys.argv[1] == '-h' or '--help':
+		sys.exit('\tUsage: genbankacc2gbk.py <acc> [additional GenBank accessions...]\n\n\tif more than one accession is provided all will be merged into a single output file\n')
 	Entrez.email = 'yourname@univ.edu'
 	if len(sys.argv) == 2:
 		get_gbk(sys.argv[1], '{}.gbk'.format(sys.argv[1]))
 	elif len(sys.argv) > 2:
 		accs = [acc for acc in sys.argv[1:]]
-		multi_gbk(wgs_acc_list, '{}.gbk'.format(','.join(accs)))
-	else:
-		sys.exit('Usage: genbankacc2gbk.py <acc> [additional GenBank accessions...]')
+		multi_gbk(accs, '{}.gbk'.format(','.join(accs)))
 
 if __name__ == '__main__':
 	main()
