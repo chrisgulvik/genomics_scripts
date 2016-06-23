@@ -9,7 +9,7 @@ from Bio import Entrez
 
 def multi_gbk(acc_list, gbk):
 	fetched = Entrez.efetch(db='nucleotide', id=acc_list, rettype='gbwithparts', retmode='text').read().rstrip('\n')
-	print 'found {} GenBank records'.format(str(len(fetched.split('//\n\n'))))
+	print '\tfound {} GenBank records'.format(str(len(fetched.split('//\n\n'))))
 	if len(fetched) < 7500:
 		sys.exit('ERROR: suspiciously short GenBank record')
 	contigs = []
