@@ -52,7 +52,7 @@ def get_gbk(accession, gbk):
 		print '\tfound {}'.format(accession)
 
 def main():
-	if len(sys.argv) == 1 or sys.argv[1] == '-h' or '--help':
+	if len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help':
 		sys.exit('\tUsage: genbankacc2gbk.py <acc> [additional GenBank accessions...]\n\n\tif more than one accession is provided all will be merged into a single output file\n')
 	Entrez.email = 'yourname@univ.edu'
 	if len(sys.argv) == 2:
