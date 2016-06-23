@@ -38,7 +38,7 @@ def get_gbk(accession, gbk):
 					sys.exit('ERROR: unable to parse WGS info')
 				wgs_acc_suff_first = int(re.sub('\D', '', wgs_accs[0]))
 				wgs_acc_suff_last  = int(re.sub('\D', '', wgs_accs[1]))
-				acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last, 1)
+				acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last + 1, 1)
 				wgs_acc_list = [wgs_acc_pref_first + str('{num:08d}'.format(num=s)) for s in acc_suffs]
 				print '\t{} accession is an incomplete chromosome.\n\tRetrieving {} individual contigs...'.format(accession, str(len(wgs_acc_list)))
 				time.sleep(3)  #be nice to NCBI before doing a second efetch request
