@@ -13,7 +13,7 @@ from Bio.SeqRecord import SeqRecord
 
 def parseArgs():
 	parser = ArgumentParser(description='Extracts gene sequences from a General Feature Format (GFF) file given a locus_tag or comma-separated list of locus_tags',
-							epilog='NOTE: a BED format of extracted gene(s) is printed to standard out')
+							epilog='a BED format of extracted gene(s) is printed to standard out')
 	parser.add_argument('-i', '--infile', required=True, help='input General Feature Format file <.gff||.gff3>')
 	parser.add_argument('-l', '--locus_tag', required=True, default=None, help='locus tag(s) to extract; comma-separate if >1')
 	parser.add_argument('-o', '--outpath', required=False, default=None, help='output directory [cwd]')
@@ -36,12 +36,14 @@ def locus_tag2record_info(want, infile):
 	given a GFF file and locus_tag to locate '''
 	parser = GFFParser()
 	with open(infile, 'r') as gff:
-		for record in parser.parse(gff, limit_info = dict(gff_type = ['gene', 'CDS', 'locus_tag', 'ID', 'product'])):
+		record_info = (None, None, None, None, None)
+		for record in parser.parse(gff, limit_info = dict(gff_type = ['gene', 'CDS', 'locus_tag', 'product'])):
 			for feature in record.features:
 				if feature.type == 'gene' and 'locus_tag' in feature.qualifiers:
-					locus_tag = feature.qualifiers.get('locus_tag', None)[0]
-					if locus_tag == want:
-						return (feature.location.start.position, feature.location.end.position, feature.strand, record.id, record.seq.tostring())
+					locus_tag = feature.qualifiers.get('locus_tag', None)
+					if want in locus_tag:
+						record_info = (feature.location.start.position, feature.location.end.position, feature.strand, record.id, record.seq.tostring())
+	return record_info
 
 def main():
 	opts = parseArgs()
@@ -61,22 +63,30 @@ def main():
 	if isinstance(locus_want, list):
 		seq_rec = []
 		for locus in locus_want:
-			(start, end, strand, contig_id, contig_seq) = locus_tag2record_info(locus, infile)
+			rec_info = locus_tag2record_info(locus, infile)
+			if all(rec_info):
+				(start, end, strand, contig_id, contig_seq) = rec_info
+				if strand < 0:
+					strand_symbol = '-'
+				else:
+					strand_symbol = '+'
+				print '{}\t{}\t{}\t{}\t0\t{}'.format(contig_id, start, end, locus, strand_symbol)
+				sr = extract_seq(start, end, strand, contig_seq, locus)
+				seq_rec.append(sr)
+			else:
+				sys.stderr.write('absent\t0\t0\t{}\t0\t.\n'.format(locus))
+	else:
+		rec_info = locus_tag2record_info(locus_want, infile)
+		if all(rec_info):
+			(start, end, strand, contig_id, contig_seq) = rec_info
 			if strand < 0:
 				strand_symbol = '-'
 			else:
 				strand_symbol = '+'
-			print '{}\t{}\t{}\t{}\t0\t{}'.format(contig_id, start, end, locus, strand_symbol)
-			sr = extract_seq(start, end, strand, contig_seq, locus)
-			seq_rec.append(sr)
-	else:
-		(start, end, strand, contig_id, contig_seq) = locus_tag2record_info(locus_want, infile)
-		if strand < 0:
-			strand_symbol = '-'
+			print '{}\t{}\t{}\t{}\t0\t{}'.format(contig_id, start, end, locus_want, strand_symbol)
+			seq_rec = extract_seq(start, end, strand, contig_seq, locus_want)
 		else:
-			strand_symbol = '+'
-		print '{}\t{}\t{}\t{}\t0\t{}'.format(contig_id, start, end, locus_want, strand_symbol)
-		seq_rec = extract_seq(start, end, strand, contig_seq, locus_want)
+			sys.exit('absent\t{}\n'.format(locus_want))
 
 	# Write one or more extracted genes to FastA
 	SeqIO.write(seq_rec, os.path.join(outpath,'extracted.ffn'), 'fasta')
