@@ -10,7 +10,7 @@ import sys
 #     a SRA toolkit binary  <http://www.ncbi.nlm.nih.gov/books/NBK158899/>
 
 os.system('esearch -db sra -query {} | efetch -format docsum | '
-		  'xtract -element Runs > /tmp/run_info'.format(sys.argv[1]))
+		  'grep \'<Runs>\' > /tmp/run_info'.format(sys.argv[1]))
 
 download = []
 with open('/tmp/run_info', 'r') as run_info:
@@ -19,7 +19,7 @@ with open('/tmp/run_info', 'r') as run_info:
 			SRR = l.lstrip('<Run acc="').split('"')[0]
 			download.append(SRR)
 
-os.remove('/tmp/run_info')
+print 'downloading {}...'.format(','.join(SRR))
 
 for SRR in download:
 	os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
