@@ -3,7 +3,6 @@
 
 import os
 from argparse import ArgumentParser
-from decimal import Decimal, ROUND_HALF_UP
 from glob import glob
 from subprocess import Popen
 from sys import exit
