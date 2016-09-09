@@ -16,10 +16,13 @@ download = []
 with open('/tmp/run_info', 'r') as run_info:
 	for l in run_info:
 		if 'SRR' in l:
-			SRR = l.lstrip('<Run acc="').split('"')[0]
+			SRR = l.split('<Run acc="')[1].split('"')[0]
 			download.append(SRR)
 
-print 'downloading {}...'.format(','.join(SRR))
+if len(download) > 1:
+	print 'downloading {}...'.format(','.join(SRR))
+else:
+	print 'downloading {}...'.format(SRR)
 
 for SRR in download:
 	os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
