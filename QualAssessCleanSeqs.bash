@@ -165,7 +165,7 @@ echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 #Create results output file
 printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
 Sample_Name Q20_Total_[bp] Q30_Total_[bp] Q20_R1_[bp] Q20_R2_[bp] Q20_single_[bp] Q20_R1_[%] Q20_R2_[%] Q20_single_[%] Q30_R1_[bp] Q30_R2_[bp] Q30_single_[bp] Q30_R1_[%] Q30_R2_[%] Q30_single_[%] Total_Sequenced_[bp] Total_Sequenced_[reads] NUMR1_[bp] NUMR2_[bp] NUMsingle_[bp] \
-"$SAMPLE" "$Q20_TOT" "$Q30_TOT" "$Q201" "$Q202" "$Q203" "$PQ201%" "$PQ202%" "$PQ203%" "$Q301" "$Q302" "$Q303" "$PQ301%" "$PQ302%" "$PQ303%" "$BP_TOT" "$READ_TOT" "$NUM_L" "$NUM_R" "$NUM_single" 
+"$SAMPLE" "$Q20_TOT" "$Q30_TOT" "$Q201" "$Q202" "$Q203" "$PQ201%" "$PQ202%" "$PQ203%" "$Q301" "$Q302" "$Q303" "$PQ301%" "$PQ302%" "$PQ303%" "$BP_TOT" "$READ_TOT" "$NUM_L" "$NUM_R" "$NUM_single" \
 > "$4"/QualAssessTrimSeqs_"$SAMPLE"_results.tab ;
 wait
 echo '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
