@@ -12,20 +12,27 @@ from Bio.SeqUtils import GC
 
 def parseArgs():
 	parser = argparse.ArgumentParser(description='filters contigs (or scaffolds) based on length, coverage, GC skew, and complexity',
-		epilog='NOTE: headers in IDBA contigs must have spaces removed or replaced with a non-whitespace character')
-	parser.add_argument('-i', '--infile',
+		epilog='NOTE: Headers in IDBA contigs must have spaces removed or replaced with a non-whitespace character.', add_help=False)
+	req = parser.add_argument_group('Required')
+	req.add_argument('-i', '--infile', metavar='FILE',
 		required=True, help='input FastA file from SPAdes or Velvet')
-	parser.add_argument('-b', '--baseheader', help='contig header prefix (with \'_#\' as suffix) [basename]')
-	parser.add_argument('-o', '--outfilename', help='output FastA filename [basename.filtered.infile_ext]')
-	parser.add_argument('-p', '--outpath', help='output path [cwd of input file]')
-	parser.add_argument('-c', '--cov', type=int, default=5,
+	opt = parser.add_argument_group('Optional')
+	opt.add_argument('-b', '--baseheader', metavar='STR',
+		help='contig header prefix (with \'_#\' as suffix) [basename infile]')
+	opt.add_argument('-c', '--cov', type=int, default=5, metavar='INT',
 		help='minimum coverage (for SPAdes and Velvet) or minimum read count (for IDBA) [5]')
-	parser.add_argument('-g', '--gcskew', default=True, action='store_false',
+	opt.add_argument('-g', '--gcskew', default=True, action='store_false',
 		help='switch to turn on saving >88 and <12%% GC contigs')
-	parser.add_argument('-m', '--complex', default=True, action='store_false',
-		help='switch to turn on saving low-complexity contigs')
-	parser.add_argument('-l', '--len', type=int, default=500,
+	opt.add_argument('-h', '--help', action='help',
+		help='show this help message and exit')
+	opt.add_argument('-l', '--len', type=int, default=500, metavar='INT',
 		help='minimum contig length (in bp) [500]')
+	opt.add_argument('-m', '--complex', default=True, action='store_false',
+		help='switch to turn on saving low-complexity contigs')
+	opt.add_argument('-o', '--outfile', metavar='FILE',
+		help='output FastA file [./basename.filtered.infile_ext]')
+	opt.add_argument('-ps', '--plasmid-spades', default=False, action='store_true',
+		help='switch to split up contigs containing component_<int> headers into separate files; zero-based <int> in input deflines are converted to one-based in output; useful for plasmidSPAdes parsing')
 	return parser.parse_args()
 
 def filter_contig(record, min_len, min_cov, gc, complexity):
@@ -78,37 +85,49 @@ def complexity_filter(record, complexity):
 
 def main():
 	args = parseArgs()
-	infile = args.infile
-	outfilename = args.outfilename
+	infile     = args.infile
+	outfile    = args.outfile
 	baseheader = args.baseheader
-	outpath = args.outpath
-	min_cov = args.cov
-	min_len = args.len
-	gc = args.gcskew
+	min_cov    = args.cov
+	min_len    = args.len
+	gc         = args.gcskew
 	complexity = args.complex
 
-	in_ext = os.path.splitext(os.path.basename(infile))[-1]
-	if outfilename is None:
+	if outfile is None:
+		in_ext  = os.path.splitext(infile)[-1]
 		out_ext = '.filtered' + in_ext
-		base = os.path.splitext(os.path.basename(infile))[0]
-		outfilename = base + out_ext
-	if outpath is None:
-		outpath = os.path.dirname(infile)
+		base    = os.path.splitext(os.path.basename(infile))[0]
+		outfile = base + out_ext
 	if baseheader is None:
 		baseheader = os.path.splitext(os.path.basename(infile))[0]
 
-	out = os.path.join(outpath, outfilename)
+	if args.plasmid_spades:
+		out_extension = os.path.splitext(outfile)[-1]
+		out_base      = os.path.splitext(outfile)[0]
+	else:
+		out = outfile
 
-	with open(out, 'w') as filtered_fasta:
-		with open(infile, 'rU') as input_fasta:
-			i = 1
-			for record in SeqIO.parse(input_fasta, 'fasta'):
-				class_name = type(record)  #'Bio.SeqRecord.SeqRecord'
-				r = filter_contig(record, min_len, min_cov, gc, complexity)
-				if isinstance(r, class_name):
-					renamed_rec = SeqRecord.SeqRecord(id='{}_{}'.format(baseheader, i), seq=r.seq, description='')
-					SeqIO.write(renamed_rec, filtered_fasta, 'fasta')
-					i += 1
+	with open(infile, 'rU') as input_fasta:
+		i = 1
+		for record in SeqIO.parse(input_fasta, 'fasta'):
+			class_name = type(record)  #'Bio.SeqRecord.SeqRecord'
+			r = filter_contig(record, min_len, min_cov, gc, complexity)
+			if isinstance(r, class_name):
+				if args.plasmid_spades:
+					if 'component_' in r.id:
+						component_regex = re.compile('component_([0-9]+)')
+						component_nr = str(int(component_regex.search(r.id).group(0).lstrip('component_')) + 1)
+						out = out_base + '.' + component_nr + out_extension
+						with open(out, 'a') as filtered_fasta:
+							renamed_rec = SeqRecord.SeqRecord(id='{}_{}'.format(baseheader, i), seq=r.seq, description='')
+							SeqIO.write(renamed_rec, filtered_fasta, 'fasta')
+					else:
+						sys.exit('ERROR: --plasmid-spades option invoked but component_ absent in {}'.format(r.id))
+				else:
+					with open(out, 'a') as filtered_fasta:
+						renamed_rec = SeqRecord.SeqRecord(id='{}_{}'.format(baseheader, i), seq=r.seq, description='')
+						SeqIO.write(renamed_rec, filtered_fasta, 'fasta')
+				i += 1
 
 if __name__ == '__main__':
 	main()
