@@ -20,7 +20,8 @@ def parseArgs():
 	opt.add_argument('-b', '--baseheader', metavar='STR',
 		help='contig header prefix (with \'_#\' as suffix) [basename infile]')
 	opt.add_argument('-c', '--cov', type=int, default=5, metavar='INT',
-		help='minimum coverage (for SPAdes and Velvet) or minimum read count (for IDBA) [5]')
+		help='minimum coverage (for SPAdes and Velvet) or minimum read count '
+		'(for IDBA) [5]; set to 0 if deflines lack coverage')
 	opt.add_argument('-g', '--gcskew', default=True, action='store_false',
 		help='switch to turn on saving >88 and <12%% GC contigs')
 	opt.add_argument('-h', '--help', action='help',
@@ -32,11 +33,18 @@ def parseArgs():
 	opt.add_argument('-o', '--outfile', metavar='FILE',
 		help='output FastA file [./basename.filtered.infile_ext]')
 	opt.add_argument('-ps', '--plasmid-spades', default=False, action='store_true',
-		help='switch to split up contigs containing component_<int> headers into separate files; zero-based <int> in input deflines are converted to one-based in output; useful for plasmidSPAdes parsing')
+		help='switch to split up contigs containing component_<int> headers '
+		'into separate files; zero-based <int> in input deflines are '
+		'converted to one-based in output; useful for plasmidSPAdes parsing')
 	return parser.parse_args()
 
 def filter_contig(record, min_len, min_cov, gc, complexity):
 	''' removes short and low coverage contigs '''
+	if min_cov == 0:
+		if len(record.seq) >= min_len:
+			accepted_record = gc_filter(record, gc, complexity)
+			return accepted_record
+
 	if len(record.seq) >= min_len:
 		cov_pattern = re.compile('cov_([0-9.]+)_')  #SPAdes and Velvet
 		cov_match = cov_pattern.search(record.name)
