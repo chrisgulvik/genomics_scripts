@@ -35,7 +35,7 @@ def main():
 	with open(opts.infile, 'r') as ifh:
 		query_labels = set()
 		for ln in ifh:
-			query_labels.add(ln.split('\t')[opts.col-1])
+			query_labels.add(ln.split('\t')[opts.column-1])
 
 	# Filter best hits
 	best = {k: ['0']*12 for k in query_labels}
@@ -43,8 +43,8 @@ def main():
 		for ln in ifh:
 			data = ln.rstrip('\n').split('\t')
 			if float(data[11]) > opts.bitscore and \
-			float(data[11]) > float(best[data[opts.col-1]][11]):
-				best[data[opts.col-1]] = data
+			float(data[11]) > float(best[data[opts.column-1]][11]):
+				best[data[opts.column-1]] = data
 
 	# Write output
 	with open(outfile, 'w') as o:
