@@ -24,9 +24,16 @@ TOT_NUM_N=$(grep -o 'N' /tmp/sequence.txt | wc -l)
 TOT_NUM_GAP=$(grep -o '-' /tmp/sequence.txt | wc -l)
 rm /tmp/sequence.txt
 
+GC=$(($TOT_NUM_G + $TOT_NUM_C))
+TOT_LEN=$(($GC + $TOT_NUM_A + $TOT_NUM_T + $TOT_NUM_N + $TOT_NUM_GAP))
+GC_PERC=$(echo "scale=1; ($GC / $TOT_LEN) * 100" | bc)
+
 echo "A: $TOT_NUM_A
 T: $TOT_NUM_T
 C: $TOT_NUM_C
 G: $TOT_NUM_G
 N: $TOT_NUM_N
-gaps: $TOT_NUM_GAP"
+gaps: $TOT_NUM_GAP
+GC content: $GC_PERC%
+Total length: $TOT_LEN
+"
