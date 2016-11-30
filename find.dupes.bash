@@ -45,7 +45,7 @@ for ((i=1 ; i <= nopts ; i++)); do
 			shift 2
 			;;
 		-r | --ref)
-			REF="$2"
+			REF=`readlink -f $2`
 			echo "    reference genome: $2"
 			shift 2
 			;;
@@ -71,6 +71,7 @@ done
 command -v nucmer >/dev/null 2>&1 || { echo 'ERROR: nucmer not found' >&2; exit 1; }
 command -v show-coords >/dev/null 2>&1 || { echo 'ERROR: show-coords not found' >&2; exit 1; }
 command -v bedtools >/dev/null 2>&1 || { echo 'ERROR: bedtools not found' >&2; exit 1; }
+command -v sortBed >/dev/null 2>&1 || { echo 'ERROR: sortBed not found' >&2; exit 1; }
 
 # Create tmp dir (if absent)
 if [ ! -d "$TMP" ]; then
@@ -104,7 +105,8 @@ while IFS=$'\t' read -r -a line; do
 	echo -e "${line[9]}\t${line[2]}\t${line[3]}" >> DUPES.bed
 done < <(grep '^[1-9]' filtered.coords)
 
-sort -t$'\t' -k2 -n DUPES.bed > DUPES_sorted.bed
+# Sort and remove duplicate lines
+sort -t$'\t' -V -k 1,3 DUPES.bed | sortBed > DUPES_sorted.bed
 awk '{if(++dup[$0]==1) {print $0}}' DUPES_sorted.bed > DUPES_sorted_deduped.bed
 
 # Remove full-length chromosome matches; handles >1 contig
@@ -118,7 +120,8 @@ while read -r -a deflines; do
 done < <(grep '^>' DUPES.delta)
 
 # Merge common overlapping regions
-bedtools merge -i DUPES_sorted_deduped.bed > maskedRegions.bed
+bedtools merge -i DUPES_sorted_deduped.bed > maskedRegions.unsorted.bed
+sort -t$'\t' -V -k 1,3 maskedRegions.unsorted.bed > maskedRegions.bed
 
 REGIONS=$(wc -l maskedRegions.bed | awk '{print $1}')
 SITES=$(awk -F'\t' 'BEGIN{SUM=0}; {SUM+=$3-$2}; END{print SUM}' maskedRegions.bed)
