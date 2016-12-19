@@ -4,7 +4,7 @@
 from argparse import ArgumentParser
 from itertools import combinations
 from glob import glob
-from re import search
+from re import search, DOTALL
 from shutil import rmtree
 from tempfile import mkdtemp
 import os
@@ -13,11 +13,15 @@ def parseArgs():
 	parser = ArgumentParser(description='Computes pairwise percent '
 		'similarities by performing Needleman-Wunsch global alignments. '
 		'Requires the needle binary from The European Molecular Biology '
-		'Open Software Suite (EMBOSS).', add_help=False)
+		'Open Software Suite (EMBOSS) or the ggsearch36 binary from '
+		'the FASTA package suite.', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--inpath', required=True, metavar='PATH',
 		help='path containing input files')
 	opt = parser.add_argument_group('Optional')
+	opt.add_argument('-a', '--aligner', choices=['ggsearch36', 'needle'],
+		default='needle', help='binary name to use for global alignment '
+		'[needle]')
 	opt.add_argument('-e', '--ext', type=str, metavar='STR', default='fasta',
 		help='file extension to find all nucleotide FastA files within the '
 		'specified inpath [fasta]')
@@ -30,6 +34,7 @@ def parseArgs():
 
 def main():
 	opts = parseArgs()
+	aligner = opts.aligner
 	inpath  = os.path.abspath(opts.inpath)
 	ext     = opts.ext
 	tmp     = mkdtemp()
@@ -50,16 +55,26 @@ def main():
 			tmpfile = os.path.join(tmp, b1 + ',' + b2 + '.needle')
 			
 			# Run global alignments
-			os.system('needle -asequence {} -snucleotide1 -bsequence '
-			'{} -snucleotide2 -gapopen 10.0 -gapextend 0.5 -outfile '
-			'{} -aformat3 markx2 -awidth3 60 -auto -error'.format(
-				i, j, tmpfile))
-			
-			# Parse percent similarity values (Version: EMBOSS:6.6.0.0)
+			if aligner == 'needle':
+				os.system('needle -asequence {} -snucleotide1 -bsequence '
+				'{} -snucleotide2 -gapopen 10.0 -gapextend 0.5 -outfile '
+				'{} -aformat3 markx2 -awidth3 60 -auto -error'.format(
+					i, j, tmpfile))
+			elif aligner == 'ggsearch36':
+				os.system('ggsearch36 -b 1 -f 10 -g 0.5 -n -m 0 -O {} -w 80 '
+					'{} {} > /dev/null'.format(tmpfile, i, j))
+
+			# Parse percent similarity values
 			dat = open(tmpfile).readlines()
-			f = search(r'#\s+Similarity:\s+\d+\/\d+\s+\(\d+.\d+\%\)\n',
-				''.join(dat))
-			similarity = f.group(0).split('(')[-1].rstrip('%)\n')
+			if aligner == 'needle':  #(Version: EMBOSS:6.6.0.0)
+				f = search(r'#\s+Similarity:\s+\d+\/\d+\s+\(\d+.\d+\%\)\n',
+					''.join(dat))
+				similarity = f.group(0).split('(')[-1].rstrip('%)\n')
+			elif aligner == 'ggsearch36':  #GGSEARCH 36.3.7 Oct, 2014preload9
+				f = search(r'global\/global.+similar.+\n',
+					''.join(dat), flags=DOTALL)
+				similarity = f.group(0).split('% identity (')[-1].split(
+					'% similar)')[0]
 			ofh.write('{}\t{}\t{}\n'.format(b1, b2, similarity))
 	rmtree(tmp)
 
