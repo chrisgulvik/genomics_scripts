@@ -1,6 +1,7 @@
 #!/bin/bash
 
-function usage() { 
+
+function usage { 
 	echo "
 	Usage: `basename $0` /InputPath/input.fasta
 
