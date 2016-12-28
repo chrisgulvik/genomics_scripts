@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# recursively searches within input dir to remove most dirs and files SPAdes creates
-# but maintains essential log files, contigs, and scaffolds FastA files
 
-# usage: bash ~/scripts/prune_SPAdes_assembly_dirs.bash <PARENT_DIR_CLEANUP>
+if [[ "$1" == "" || "$1" == "--help" || "$1" == "-h" ]]; then
+	echo "
+	Usage: `basename $0` input_dir
+
+	Given a path containing SPAdes assemblies, recursively
+	searches within the input dir to remove most dirs and files
+	SPAdes creates but maintains essential log files, contigs,
+	and scaffolds FastA files."
+	exit 1
+fi
 
 mapfile -t asm_dirs < <(find -L "$1" -type d -regextype posix-extended -regex '\/.*\/K[1-9][0-9]{1,2}' -print | xargs dirname | uniq)
 
