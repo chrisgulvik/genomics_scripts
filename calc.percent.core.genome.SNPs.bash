@@ -3,7 +3,7 @@
 
 function usage { 
 	echo "
-	Usage: `basename $0` -c [coreSNPs.fasta] -r [reference.fasta]
+	Usage: `basename $0` -c input_coreSNPs.fasta -r input_ref.fasta
 	
 	Given a SNPs FastA file and the corresponding reference 
 	FastA file, reports the number of SNP sites per sample, the
