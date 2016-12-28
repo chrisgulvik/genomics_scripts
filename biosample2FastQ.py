@@ -1,31 +1,57 @@
 #!/usr/bin/env python
 
+
 import os
-import sys
+from argparse import ArgumentParser
+from shutil import rmtree
+from tempfile import mkdtemp
 
-# Downloads raw FastQ reads given a BioSample accession (SAMN########)
-# or SRA Run sccession (SRR#######)
-# Depends on:
-#     entrez direct scripts <http://www.ncbi.nlm.nih.gov/books/NBK179288/>
-#     a SRA toolkit binary  <http://www.ncbi.nlm.nih.gov/books/NBK158899/>
+def parseArgs():
+	parser = ArgumentParser(description='Downloads FastQ (Phred 33) reads '
+		'given a BioSample accession (SAMN########) or SRA Run accession '
+		'(SRR#######). Depends on Entrez Direct scripts '
+		'http://www.ncbi.nlm.nih.gov/books/NBK179288/ and SRA toolkit '
+		'http://www.ncbi.nlm.nih.gov/books/NBK158899/', add_help=False)
+	req = parser.add_argument_group('Required')
+	req.add_argument('-a', '--acc', required=True, metavar='STR',
+		help='accession that points to FastQ reads to download')
+	opt = parser.add_argument_group('Optional')
+	opt.add_argument('-h', '--help', action='help',
+		help='show this help message and exit')
+	opt.add_argument('-o', '--outdir', metavar='DIR',
+		default=None, help='output directory [./]')
+	return parser.parse_args()
 
-os.system('esearch -db sra -query {} | efetch -format docsum | '
-		  'grep \'<Runs>\' > /tmp/run_info'.format(sys.argv[1]))
+def main():
+	opt = parseArgs()
+	acc = opt.acc
+	tmp = mkdtemp()
+	tfh = os.path.join(tmp, acc)
+	if opt.outdir is not None:
+		outdir = os.path.abspath(opt.outdir)
+	else:
+		outdir = os.getcwd()
 
-download = []
-with open('/tmp/run_info', 'r') as run_info:
-	for l in run_info:
-		if 'SRR' in l:
-			SRR = l.split('<Run acc="')[1].split('"')[0]
-			download.append(SRR)
+	os.system('esearch -db sra -query {} | efetch -format docsum | '
+			  'grep \'<Runs>\' > {}'.format(acc, tfh))
 
-if len(download) > 1:
-	print 'downloading {}...'.format(','.join(SRR))
-else:
-	print 'downloading {}...'.format(SRR)
+	download = []
+	with open(tfh, 'r') as run_info:
+		for ln in run_info:
+			if 'SRR' in ln:
+				SRR = ln.split('<Run acc="')[1].split('"')[0]
+				download.append(SRR)
+	rmtree(tmp)
 
-for SRR in download:
-	os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
-			  '-defline-qual \'+\' --defline-seq \'@$ac_$sn[_$rn]/$ri\' '
-			  '{}'.format(os.path.join(os.getcwd(), sys.argv[1]), SRR))
-	print '\tdownloaded {}'.format(SRR)
+	if len(download) > 1:
+		print 'downloading {} ...'.format(', '.join(SRR))
+	else:
+		print 'downloading {} ...'.format(SRR)
+	for SRR in download:
+		os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
+				  '-defline-qual \'+\' --defline-seq \'@$ac_$sn[_$rn]/$ri\' '
+				  '{}'.format(outdir, SRR))
+		print '\tdownloaded {}'.format(SRR)
+
+if __name__ == '__main__':
+	main()
