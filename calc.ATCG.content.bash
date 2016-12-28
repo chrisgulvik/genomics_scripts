@@ -1,8 +1,12 @@
 #!/bin/bash
 
-function usage { 
+function usage() { 
 	echo "
 	Usage: `basename $0` /InputPath/input.fasta
+
+	Given a FastA file (with or without linewraps),
+	reports nucleotide frequency including gaps and Ns,
+	GC content, and cumulative length.
 	"
 	}
 
