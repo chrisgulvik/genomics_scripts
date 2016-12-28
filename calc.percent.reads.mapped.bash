@@ -1,8 +1,12 @@
 #!/bin/bash
 
+
 function usage { 
 	echo "
-	Usage: `basename $0` -b /InputPath/bam-dir [-o ./stats.mapping.tab]
+	Usage: `basename $0` -b input_bam_dir [-o ./stats.mapping.tab]
+
+	Given a directory of BAM files, reports mapping statistics
+	to a specified tab-delimited output file. Requires bamtools.
 	"
 	}
 
@@ -30,7 +34,7 @@ done
 [[ -z $BAMDIR ]] && { usage; exit 1; }
 command -v bamtools >/dev/null 2>&1 || { echo 'ERROR: bamtools not found' >&2; exit 1; }
 
-# default output
+# default output filename
 [[ -z $OUT ]] && OUT='stats.mapping.tab'
 
 # Create output path and output summary file
@@ -47,7 +51,9 @@ for bam in "$BAMDIR"/*.bam; do
 	b=$(basename "$bam")
 	bamtools stats -in "$bam" > "$DIR"/tmpstatsfull."$b".tmp
 	
-	grep 'Mapped reads' tmpstatsfull."$b".tmp | awk 'BEGIN {FS="\t"}; {print $2}' | sed 's/[()]//g' > "$DIR"/tmpstatsperc."$b".tmp
+	grep 'Mapped reads' tmpstatsfull."$b".tmp |\
+	 awk 'BEGIN {FS="\t"}; {print $2}' |\
+	 sed 's/[()]//g' > "$DIR"/tmpstatsperc."$b".tmp
 	rm "$DIR"/tmpstatsfull."$b".tmp
 
 	if [ -s tmpstatsperc."$b".tmp ]; then # percent was extracted
