@@ -2,6 +2,7 @@
 
 
 import os
+import sys
 from argparse import ArgumentParser
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -38,19 +39,21 @@ def main():
 	download = []
 	with open(tfh, 'r') as run_info:
 		for ln in run_info:
-			if 'SRR' in ln:
+			if '<Run acc="' in ln:
 				SRR = ln.split('<Run acc="')[1].split('"')[0]
 				download.append(SRR)
 	rmtree(tmp)
 
 	if len(download) > 1:
-		print 'downloading {} ...'.format(', '.join(SRR))
+		print 'downloading {} ...'.format(', '.join(download))
+	elif len(download) == 1:
+		print 'downloading {} ...'.format(download[0])
 	else:
-		print 'downloading {} ...'.format(SRR)
+		sys.exit('No matches for {}.'.format(acc))
 	for SRR in download:
 		os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
 				  '-defline-qual \'+\' --defline-seq \'@$ac_$sn[_$rn]/$ri\' '
-				  '{}'.format(outdir, SRR))
+				  '{} 2> /dev/null '.format(outdir, SRR))
 		print '\tdownloaded {}'.format(SRR)
 
 if __name__ == '__main__':
