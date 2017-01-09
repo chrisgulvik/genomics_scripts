@@ -64,11 +64,11 @@ def get_gbk(accession, minlen, gbk):
 				acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last + 1, 1)
 				wgs_acc_list = [wgs_acc_pref_first + 
 					str('{num:08d}'.format(num=s)) for s in acc_suffs]
-				print '\t{} accession is an incomplete chromosome.\n'
+				print ('\t{} accession is an incomplete chromosome.\n'
 				'\tRetrieving {} individual contigs...'.format(
-					accession, str(len(wgs_acc_list)))
+					accession, str(len(wgs_acc_list))))
 				time.sleep(3)  #be nice to NCBI before doing a second efetch request
-				multi_gbk(wgs_acc_list, gbk)
+				multi_gbk(wgs_acc_list, minlen, gbk)
 	elif len(fetched) < minlen:
 		sys.exit('{}\nERROR: suspiciously short record for {}'.format(
 			fetched, accession))
