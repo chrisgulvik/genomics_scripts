@@ -81,7 +81,7 @@ with open(sys.argv[1]) as ifh:
 for s, t in [('substitu', cnt_sub),
 (' 1 bp inser', cnt_ins), ('>1 bp inser', cnt_ins2),
 (' 1 bp dele', cnt_del), ('>1 bp dele', cnt_del2)]:
-	print '{}tions: {}'.format(s, t)
+	print 'Total {}tions: {}'.format(s, t)
 
 # Report errors being within or outside of coding sequences
 for s, t, u in [('sub', cnt_sub, cnt_sub_cds),
