@@ -76,7 +76,7 @@ def main():
 						sys.exit('ERROR: unable to download {}'.format(s))	
 			except ValueError:
 				pass
-	# rmtree(tmp)
+	rmtree(tmp)
 	print 'Downloaded {} GenBank files'.format(i)
 
 if __name__ == '__main__':
