@@ -11,17 +11,18 @@ import os
 
 def parseArgs():
 	parser = ArgumentParser(description='Computes pairwise percent '
-		'similarities by performing Needleman-Wunsch global alignments. '
-		'Requires the needle binary from The European Molecular Biology '
+		'nucleotide similarities by performing local or global alignments. '
+		'Requires the blastn binary from the BLAST+ suite, the '
+		'needle binary from The European Molecular Biology '
 		'Open Software Suite (EMBOSS) or the ggsearch36 binary from '
 		'the FASTA package suite.', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--inpath', required=True, metavar='PATH',
 		help='path containing input files')
 	opt = parser.add_argument_group('Optional')
-	opt.add_argument('-a', '--aligner', choices=['ggsearch36', 'needle'],
-		default='needle', help='binary name to use for global alignment '
-		'[needle]')
+	opt.add_argument('-a', '--aligner', choices=['blastn', 'ggsearch36',
+		'needle'], default='blastn', help='binary name to use for local or '
+		'global alignment [blastn]')
 	opt.add_argument('-e', '--ext', type=str, metavar='STR', default='fasta',
 		help='file extension to find all nucleotide FastA files within the '
 		'specified inpath [fasta]')
@@ -52,7 +53,7 @@ def main():
 		for i, j in sort_uniq_filepairs:
 			b1 = os.path.basename(i).rstrip('.' + ext)
 			b2 = os.path.basename(j).rstrip('.' + ext)
-			tmpfile = os.path.join(tmp, b1 + ',' + b2 + '.needle')
+			tmpfile = os.path.join(tmp, b1 + ',' + b2 + '.similarity')
 			
 			# Run global alignments
 			if aligner == 'needle':
@@ -63,6 +64,13 @@ def main():
 			elif aligner == 'ggsearch36':
 				os.system('ggsearch36 -b 1 -f 10 -g 0.5 -n -m 0 -O {} -w 80 '
 					'{} {} > /dev/null'.format(tmpfile, i, j))
+			elif aligner == 'blastn':
+				tmp_b1 = os.path.join(tmp, b1)
+				os.system('makeblastdb -dbtype nucl -in {} -out {} '
+					'> /dev/null'.format(i, tmp_b1))
+				os.system('blastn -task blastn -outfmt \"6 ppos\" '
+					'-db {} -query {} -out {} > /dev/null'.format(tmp_b1, j,
+					tmpfile))
 
 			# Parse percent similarity values
 			dat = open(tmpfile).readlines()
@@ -75,6 +83,8 @@ def main():
 					''.join(dat), flags=DOTALL)
 				similarity = f.group(0).split('% identity (')[-1].split(
 					'% similar)')[0]
+			elif aligner == 'blastn':  #v2.2.31+
+				similarity = dat[0].rstrip('\n')
 			ofh.write('{}\t{}\t{}\n'.format(b1, b2, similarity))
 	rmtree(tmp)
 
