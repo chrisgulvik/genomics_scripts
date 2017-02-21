@@ -40,7 +40,7 @@ def multi_gbk(acc_list, minlen, gbk):
 		del acc_list[0]
 		contig = record.rstrip('\n').split('\n')
 		i = contig.index('ORIGIN      ')
-		contig.insert(i, 'CONTIG')  #adding this line to multigenbank style enables biopython to parse in SeqIO as 'gb'
+		contig.insert(i, 'CONTIG')  #enables biopython to SeqIO parse as 'gb'
 		contigs.extend(contig)
 	with open(gbk, 'w') as of:
 		of.write('\n'.join(s for s in contigs))
@@ -51,24 +51,29 @@ def get_gbk(accession, minlen, gbk):
 	if accession not in fetched:
 		sys.exit('ERROR: unable to retrieve accession number {}'.format(
 			accession))
-	if 'WGS         ' in fetched: #entry is the master record for a whole genome shotgun sequencing project and contains no sequence data
-		for line in fetched.split('\n'):
+	if 'WGS         ' in fetched: #entry is the master record for a whole 
+	# genome shotgun sequencing (WGS) project and lacks sequence data
+		wgs_acc_list = []
+		for line in fetched.split('\n'): #handles >1 WGS entry such as NZ_AWGN00000000.1
 			if line.startswith('WGS         '):
-				wgs_accs = line.lstrip('WGS         ').split('-')
-				wgs_acc_pref_first = re.sub('\d', '', wgs_accs[0])
-				wgs_acc_pref_last  = re.sub('\d', '', wgs_accs[1])
-				if wgs_acc_pref_first != wgs_acc_pref_last:
-					sys.exit('ERROR: unable to parse WGS info')
-				wgs_acc_suff_first = int(re.sub('\D', '', wgs_accs[0]))
-				wgs_acc_suff_last  = int(re.sub('\D', '', wgs_accs[1]))
-				acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last + 1, 1)
-				wgs_acc_list = [wgs_acc_pref_first + 
-					str('{num:08d}'.format(num=s)) for s in acc_suffs]
-				print ('\t{} accession is an incomplete chromosome.\n'
-				'\tRetrieving {} individual contigs...'.format(
-					accession, str(len(wgs_acc_list))))
-				time.sleep(3)  #be nice to NCBI before doing a second efetch request
-				multi_gbk(wgs_acc_list, minlen, gbk)
+				if '-' in line: #single range specified such as NZ_MDJV00000000.1
+					wgs_accs = line.lstrip('WGS         ').split('-')
+					wgs_acc_pref_first = re.sub('\d', '', wgs_accs[0])
+					wgs_acc_pref_last  = re.sub('\d', '', wgs_accs[1])
+					if wgs_acc_pref_first != wgs_acc_pref_last:
+						sys.exit('ERROR: unable to parse WGS info')
+					wgs_acc_suff_first = int(re.sub('\D', '', wgs_accs[0]))
+					wgs_acc_suff_last  = int(re.sub('\D', '', wgs_accs[1]))
+					acc_suffs = range(wgs_acc_suff_first, wgs_acc_suff_last + 1, 1)
+					wgs_acc_list.extend( [wgs_acc_pref_first + 
+						str('{num:08d}'.format(num=s)) for s in acc_suffs] )
+				else: #just one accession specified such as NZ_JPNX00000000.2
+					wgs_acc_list.append(line.split()[1])
+		print ('\t{} accession is an incomplete chromosome.\n'
+		'\tRetrieving {} individual contigs...'.format(
+			accession, str(len(wgs_acc_list))))
+		time.sleep(3)  #be nice to NCBI before doing a second efetch request
+		multi_gbk(wgs_acc_list, minlen, gbk)
 	elif len(fetched) < minlen:
 		sys.exit('{}\nERROR: suspiciously short record for {}'.format(
 			fetched, accession))
