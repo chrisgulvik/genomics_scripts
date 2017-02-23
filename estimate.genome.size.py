@@ -42,7 +42,7 @@ def main():
 	for k in kmers:
 		peaks = os.path.join(tmp, k + '_peaks.txt')
 		os.system('kmercountexact.sh ploidy=1 k={} peaks={} '
-			'in1={} in2={} 2> /dev/null'.format(k, peaks, R1, R2))
+			'in1={} in2={} 2> {}'.format(k, peaks, R1, R2, os.devnull))
 		i = 0
 		with open(peaks) as dat:
 			for ln in dat:
