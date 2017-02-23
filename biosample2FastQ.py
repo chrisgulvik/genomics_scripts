@@ -53,8 +53,8 @@ def main():
 	for SRR in download:
 		os.system('fastq-dump -O {} --dumpbase --split-files --readids -Q 33 '
 				  '-defline-qual \'+\' --defline-seq \'@$ac_$sn[_$rn]/$ri\' '
-				  '{} 2> /dev/null '.format(outdir, SRR))
-		print '\tdownloaded {}'.format(SRR)
+				  '{} 1> {} '.format(outdir, SRR, os.devnull))
+		print '  downloaded {}'.format(SRR)
 
 if __name__ == '__main__':
 	main()
