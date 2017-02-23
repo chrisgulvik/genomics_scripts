@@ -63,14 +63,14 @@ def main():
 					i, j, tmpfile))
 			elif aligner == 'ggsearch36':
 				os.system('ggsearch36 -b 1 -f 10 -g 0.5 -n -m 0 -O {} -w 80 '
-					'{} {} > /dev/null'.format(tmpfile, i, j))
+					'{} {} > {}'.format(tmpfile, i, j, os.devnull))
 			elif aligner == 'blastn':
 				tmp_b1 = os.path.join(tmp, b1)
 				os.system('makeblastdb -dbtype nucl -in {} -out {} '
-					'> /dev/null'.format(i, tmp_b1))
+					'> {}'.format(i, tmp_b1, os.devnull)
 				os.system('blastn -task blastn -outfmt \"6 ppos\" '
-					'-db {} -query {} -out {} > /dev/null'.format(tmp_b1, j,
-					tmpfile))
+					'-db {} -query {} -out {} > {}'.format(tmp_b1, j,
+					tmpfile, os.devnull))
 
 			# Parse percent similarity values
 			dat = open(tmpfile).readlines()
