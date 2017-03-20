@@ -13,7 +13,7 @@ def parseArgs():
 	req.add_argument('-i', '--infile', required=True,
 		help='input multi-FastA file')
 	req.add_argument('-q', '--query', required=True,
-		help='string to extract')
+		help='string to search deflines')
 	opt = parser.add_argument_group('Optional')
 	opt.add_argument('-o', '--outfile', required=False, default=None,
 		help='output file [./<query>.fa]')
@@ -21,12 +21,12 @@ def parseArgs():
 
 def main():
 	args = parseArgs()
-	infile  = args.infile
+	infile  = os.path.abspath(os.path.expanduser(args.infile))
 	query   = args.query
 	if args.outfile:
 		outfile = os.path.abspath(os.path.expanduser(args.outfile))
 	else:
-		outfile = os.path.join(os.getcwd(), query + '.fa')
+		outfile = query + '.fa'
 	if not os.path.exists(os.path.dirname(outfile)):
 		os.mkdir(os.path.dirname(outfile))
 
