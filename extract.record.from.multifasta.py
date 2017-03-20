@@ -7,13 +7,16 @@ from Bio import SeqIO
 
 def parseArgs():
 	parser = ArgumentParser(
-		description='extract record(s) from a multi-FastA file that match a query string')
-	parser.add_argument('-i', '--infile', required=True,
+		description='extract record(s) from a multi-FastA file that contain a'
+		' query string', add_help=False)
+	req = parser.add_argument_group('Required')
+	req.add_argument('-i', '--infile', required=True,
 		help='input multi-FastA file')
-	parser.add_argument('-q', '--query', required=True,
+	req.add_argument('-q', '--query', required=True,
 		help='string to extract')
-	parser.add_argument('-o', '--outfile', required=False, default=None,
-		help='output file [`pwd`/<query>.fa]')
+	opt = parser.add_argument_group('Optional')
+	opt.add_argument('-o', '--outfile', required=False, default=None,
+		help='output file [./<query>.fa]')
 	return parser.parse_args()
 
 def main():
@@ -21,7 +24,7 @@ def main():
 	infile  = args.infile
 	query   = args.query
 	if args.outfile:
-		outfile = args.outfile
+		outfile = os.path.abspath(os.path.expanduser(args.outfile))
 	else:
 		outfile = os.path.join(os.getcwd(), query + '.fa')
 	if not os.path.exists(os.path.dirname(outfile)):
@@ -30,7 +33,7 @@ def main():
 	mfasta = SeqIO.parse(infile, 'fasta')
 	query_match = []
 	for record in mfasta:
-		if query in record.description:
+		if str(query) in record.description:
 			query_match.append(record)
 
 	if query_match:
