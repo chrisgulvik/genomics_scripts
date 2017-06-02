@@ -30,9 +30,10 @@ def main():
 		json_data = json.load(json_file)
 		if opt.outfile is not None:
 			ofh = os.path.abspath(os.path.expanduser(opt.outfile))
-			ofh.write(json_data[u'summary'])
+			with open(ofh, 'w') as o:
+				o.write(json_data[u'summary'])
 		else:
-			print(json_data[u'summary']) 
+			print(json_data[u'summary'])
 
 if __name__ == '__main__':
 	main()
