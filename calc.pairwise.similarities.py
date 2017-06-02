@@ -67,7 +67,7 @@ def main():
 			elif aligner == 'blastn':
 				tmp_b1 = os.path.join(tmp, b1)
 				os.system('makeblastdb -dbtype nucl -in {} -out {} '
-					'> {}'.format(i, tmp_b1, os.devnull)
+					'> {}'.format(i, tmp_b1, os.devnull))
 				os.system('blastn -task blastn -outfmt \"6 ppos\" '
 					'-db {} -query {} -out {} > {}'.format(tmp_b1, j,
 					tmpfile, os.devnull))
