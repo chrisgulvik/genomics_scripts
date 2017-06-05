@@ -46,10 +46,10 @@ def filter_contig(record, min_len, min_cov, gc, complexity):
 			return accepted_record
 
 	if len(record.seq) >= min_len:
-		cov_pattern = re.compile('cov_([0-9.]+)_')  #SPAdes and Velvet
+		cov_pattern = re.compile('cov_([0-9.]+)')  #SPAdes v3.10.1 and Velvet v1.2.10 lack trailing underscore
 		cov_match = cov_pattern.search(record.name)
 		if cov_match:
-			if float((cov_match.group(0)).lstrip('cov_').rstrip('_')) >= min_cov:
+			if float((cov_match.group(0)).lstrip('cov_')) >= min_cov:
 				accepted_record = gc_filter(record, gc, complexity)
 				if accepted_record:
 					return accepted_record
