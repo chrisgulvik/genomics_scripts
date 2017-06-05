@@ -1,5 +1,10 @@
 # Misc Genomics Scripts
 
+### Requirements
+ - python 2.7 with biopython and the full scipy stack
+
+***
+# FastA manipulation and statistics
 - **calc.ATCG.content.bash**: a unix way to quickly get A,T,C,G,N,- content from a FastA file; handles linewraps and multiple records
 
 - **filter.contigs.py**: cleans up a _de novo_ assembly from SPAdes, Velvet, or IDBA (requires biopython). IDBA includes space-delimited data in their contig headers, and because SeqIO parses on whitespace, these will need to be removed or replaced (e.g., `sed -i 's/ /|/g' assembly.fna`). SPAdes and Velvet lack whitespace in their contig deflines, so those output files can be directly fed into this filtering script.
@@ -29,3 +34,26 @@
 
 - BLAST searching requires index files that can be easily and quickly re-generated, so remove all leftover binary files within $HOME: `find $HOME -type f -regextype posix-extended -regex '.*\.(nhr|nih|nin|nog|nsd|nsi|nsq|psi|psq)' -print | xargs rm -v`
 - SPAdes keeps a lot of intermediate files, so delete these but keep essential log and FastA files to repeat the assembly if necessary: `prune.SPAdes.assembly.dirs.bash $HOME`
+
+***
+#### Example Installation of *'bpy2'* environment
+ 1 - get anaconda
+
+     cd ~/Downloads/
+     wget https://repo.continuum.io/archive/Anaconda2-4.4.0-Linux-x86_64.sh
+     chmod u+x Anaconda2-4.4.0-Linux-x86_64.sh
+     bash Anaconda2-4.4.0-Linux-x86_64.sh
+ 2 - make it available
+
+     echo 'export PATH="$LAB_HOME/.anaconda2/bin:$PATH"' >> ~/.bashrc
+     source ~/.bashrc
+ 3 - create bpy2 environment
+
+     conda create -n bpy2 python=2.7.12
+ 4 - install modules
+
+     conda config --add channels bioconda
+     conda install biopython=1.68 dendropy=4.2.0 matplotlib=2.0.0 numpy=1.12.1 pandas=0.19.2 readline=6.2 reportlab=3.4.0 ruffus=2.6.3 scipy=0.19.0 seaborn=0.7.1 sqlite=3.13.0
+ 5 - get out of the environment
+
+     source deactivate
