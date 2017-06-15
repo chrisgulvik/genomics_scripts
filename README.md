@@ -53,7 +53,7 @@
  4 - install modules
 
      conda config --add channels bioconda
-     conda install biopython=1.68 dendropy=4.2.0 matplotlib=2.0.0 numpy=1.12.1 pandas=0.19.2 readline=6.2 reportlab=3.4.0 ruffus=2.6.3 scipy=0.19.0 seaborn=0.7.1 sqlite=3.13.0
+     conda install biopython=1.68 dendropy=4.2.0 matplotlib=2.0.0 numpy=1.12.1 pandas=0.19.2 readline=6.2 reportlab=3.4.0 ruffus=2.6.3 scipy=0.19.0 seaborn=0.7.1 scikit-learn=0.18.1 sqlite=3.13.0
  5 - get out of the environment
 
      source deactivate
