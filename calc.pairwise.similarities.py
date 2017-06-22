@@ -31,6 +31,9 @@ def parseArgs():
 	opt.add_argument('-o', '--outfile', metavar='FILE',
 		default='Pairwise.Similarities.tab',
 		help='output file [./Pairwise.Similarities.tab]')
+	opt.add_argument('-p', '--pref', type=str, metavar='STR', default='',
+		help='file prefix to find all nucleotide FastA files within the '
+		'specified inpath [*]')
 	return parser.parse_args()
 
 def main():
@@ -38,11 +41,12 @@ def main():
 	aligner = opts.aligner
 	inpath  = os.path.abspath(opts.inpath)
 	ext     = opts.ext
+	pref    = opts.pref
 	tmp     = mkdtemp()
 	outfile = os.path.abspath(opts.outfile)
 
 	# Get sorted unique list of tuples
-	files = glob(os.path.join(inpath, '*.{}'.format(ext)))
+	files = glob(os.path.join(inpath, '{}*.{}'.format(pref, ext)))
 	uniq = set()
 	for i in combinations(files, 2):
 		if i[0] != i[1]:
