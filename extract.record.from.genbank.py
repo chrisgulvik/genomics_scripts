@@ -50,7 +50,7 @@ def main():
 						inbase, hit, rec.name, feature.extract(rec.seq)))
 
 	if len(query_match) == 0:
-		sys.stderr.write('ERROR: {} absent\n'.format(query))
+		sys.stderr.write('ERROR: {} absent\n'.format(query_term))
 		sys.exit(1)
 
 	if opt.outfile:
