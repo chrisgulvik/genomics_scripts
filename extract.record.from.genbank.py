@@ -50,8 +50,12 @@ def main():
 						inbase, hit, rec.name, feature.extract(rec.seq)))
 
 	if len(query_match) == 0:
-		sys.stderr.write('ERROR: {} absent\n'.format(query_term))
+		sys.stderr.write('ERROR: {} absent in {}\n'.format(
+			query_term, infile))
 		sys.exit(1)
+	elif len(query_match) > 1:
+		sys.stderr.write('WARNING: found >1 {} in {}\n'.format(
+			query_term, infile))
 
 	if opt.outfile:
 		outfile = os.path.abspath(os.path.expanduser(opt.outfile))

@@ -54,10 +54,10 @@ def locus_tag2gene_seq(gbk, ft_type, query, outfile):
 			records.append(record)
 
 	if len(records) == 0:
-		sys.stderr.write('ERROR: {} absent\n'.format(query))
+		sys.stderr.write('ERROR: {} absent in {}\n'.format(query, gbk))
 		sys.exit(1)
 	elif len(records) > 1:
-		sys.stderr.write('WARNING: found >1 {}\n'.format(query))
+		sys.stderr.write('WARNING: found >1 {} in {}\n'.format(query, gbk))
 	
 	if outfile:
 		outfile = os.path.abspath(os.path.expanduser(outfile))
