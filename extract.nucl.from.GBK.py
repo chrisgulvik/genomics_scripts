@@ -25,7 +25,7 @@ def parseArgs():
 		help='show this help message and exit')
 	opt.add_argument('-t', '--type', default='locus_tag', metavar='STR',
 		help='genbank feature type to search in, e.g., CDS, gene, rRNA, '
-		'source, misc_feature')
+		'source, misc_feature [locus_tag]')
 	opt.add_argument('-o', '--outfile', required=False, default=None,
 		help='FastA output [stdout]')
 	return parser.parse_args()
