@@ -65,7 +65,8 @@ def main():
 		# Output each record as separate file
 		new_rec = SeqRecord(Seq(seq, generic_dna), id=pref + suff,
 			description='')
-		SeqIO.write(new_rec, pref + suff + opt.ext, 'fasta')
+		SeqIO.write(new_rec, os.path.join(outdir, pref + suff + opt.ext),
+			'fasta')
 
 if __name__ == '__main__':
 	main()
