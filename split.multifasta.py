@@ -41,7 +41,7 @@ def main():
 	if opt.outdir is None:
 		outdir = os.path.dirname(infile)
 	else:
-		outdir = opt.os.path.abspath(os.path.expanduser(opt.outdir))
+		outdir = os.path.abspath(os.path.expanduser(opt.outdir))
 	mfasta = SeqIO.parse(infile, 'fasta')
 
 	i = 1
