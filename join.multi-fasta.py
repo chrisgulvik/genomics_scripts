@@ -34,7 +34,7 @@ def parseArgs():
 		help='remove sites containing at least one specified character(s) '
 		'such as gaps or ambiguities; comma-separate for more than one '
 		'character and flank with apostrophes if necessary to santize special '
-		'characters such as \'-,N,n,X,x\' [none]')
+		'characters such as \'N,n,X,x,-\' [none]')
 	opt.add_argument('-n', '--min-alleles', metavar='INT', type=int, default=1,
 		help='minimum number of allele variants (after optional --discard '
 		'filtering option) required per site to report in output; '
@@ -102,7 +102,7 @@ def main():
 
 	# Get sample IDs from first file's deflines
 	qp = opt.seq_property
-	qd = opt.seq_delim.lstrip(''').rstrip(''')
+	qd = opt.seq_delim.lstrip('\'').rstrip('\'')
 	ids = mfa_to_dic(qd, qp, ifs[0], keys_only = True)
 
 	# Capture all sequences for each sample ID from each input file
@@ -124,7 +124,7 @@ def main():
 
 	# Optional site filtering
 	if len(opt.discard) > 0 or opt.min_alleles != 1 or opt.max_alleles != 1000:
-		unwanted = opt.discard.lstrip(''').rstrip(''').split(',')
+		unwanted = opt.discard.lstrip('\'').rstrip('\'').split(',')
 		keep = []
 
 		# Transpose sequences
