@@ -47,13 +47,16 @@
 
      echo 'export PATH="$LAB_HOME/.anaconda2/bin:$PATH"' >> ~/.bashrc
      source ~/.bashrc
- 3 - create bpy2 environment
+ 3 - create an environment called 'bpy2' with Python 2.7.12
 
      conda create -n bpy2 python=2.7.12
- 4 - install modules
+ 4 - hop into the bpy2 env
+
+     source activate bpy2
+ 5 - install modules within the bpy2 environment
 
      conda config --add channels bioconda
      conda install biopython=1.68 dendropy=4.2.0 matplotlib=2.0.0 numpy=1.12.1 pandas=0.19.2 readline=6.2 reportlab=3.4.0 ruffus=2.6.3 scipy=0.19.0 seaborn=0.7.1 scikit-learn=0.18.1 sqlite=3.13.0
- 5 - get out of the environment
+ 6 - get out of the environment
 
      source deactivate
