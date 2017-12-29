@@ -23,6 +23,8 @@ def parseArgs():
 	opt.add_argument('-a', '--aligner', choices=['blastn', 'ggsearch36',
 		'needle'], default='blastn', help='binary name to use for local or '
 		'global alignment [blastn]')
+	opt.add_argument('-c', '--cpus', type=int, metavar='INT',
+		default=1, help='number of CPUs to use [1]')
 	opt.add_argument('-e', '--ext', type=str, metavar='STR', default='fasta',
 		help='file extension to find all nucleotide FastA files within the '
 		'specified inpath [fasta]')
@@ -66,14 +68,14 @@ def main():
 				'{} -aformat3 markx2 -awidth3 60 -auto -error'.format(
 					i, j, tmpfile))
 			elif aligner == 'ggsearch36':
-				os.system('ggsearch36 -b 1 -f 10 -g 0.5 -n -m 0 -O {} -w 80 '
-					'{} {} > {}'.format(tmpfile, i, j, os.devnull))
+				os.system('ggsearch36 -T {} -b 1 -f 10 -g 0.5 -n -m 0 -O {} -w 80 '
+					'{} {} > {}'.format(opts.cpus, tmpfile, i, j, os.devnull))
 			elif aligner == 'blastn':
 				tmp_b1 = os.path.join(tmp, b1)
 				os.system('makeblastdb -dbtype nucl -in {} -out {} '
 					'> {}'.format(i, tmp_b1, os.devnull))
-				os.system('blastn -task blastn -outfmt \"6 ppos\" '
-					'-db {} -query {} -out {} > {}'.format(tmp_b1, j,
+				os.system('blastn -num_threads {} -task blastn -outfmt \"6 ppos\" '
+					'-db {} -query {} -out {} > {}'.format(opts.cpus, tmp_b1, j,
 					tmpfile, os.devnull))
 
 			# Parse percent similarity values
