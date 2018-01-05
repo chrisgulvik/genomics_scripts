@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 import os
 import sys
 from argparse import ArgumentParser
@@ -28,6 +29,11 @@ def parseArgs():
 		help='when input SQL entry has a conflicting assembly_accession '
 		'entry with the summary data fetched or provided, overwrite/replace '
 		'entry in the summary data with the infile database entry [off]')
+	opt.add_argument('-g', '--group', choices=['all', 'archaea', 'bacteria',
+		'fungi', 'invertebrate', 'metagenomes', 'other', 'plant', 'protozoa',
+		'vertebrate_mammalian', 'vertebrate_other', 'viral'],
+		metavar='{archaea, bacteria, viral}',
+		default='bacteria', help='group of assembly data to fetch [bacteria]')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
 	opt.add_argument('-i', '--infile', metavar='FILE',
@@ -46,6 +52,10 @@ def parseArgs():
 		'ASSEMBLY_REPORTS/README_assembly_summary.txt) rather than directly '
 		'fetching from NCBI\'s FTP site; especially useful if FTP is '
 		'blocked or creating custom database')
+	opt.add_argument('-u', '--url', metavar='STR', type=str, default=None,
+		help='web address to file of assembly summary data (22-column); '
+		'for bypassing NCBI access (e.g., EMBL-EBI) without locally storing '
+		'the file')
 	return parser.parse_args()
 
 def sql_open(sql_out):
@@ -93,15 +103,11 @@ def sql_create_table(cur, tbl):
 
 def sql_data_entry(con, cur, tbl, dat, bulk=False, overwrite=False):
 	if bulk and not overwrite:
-		# cur.execute('BEGIN TRANSACTION')
 		cur.executemany('INSERT INTO {} VALUES({})'.format(
 			tbl, ('?,' * 22)[:-1]), dat)
-		# cur.execute('COMMIT')
 	elif bulk and overwrite:
-		# cur.execute('BEGIN TRANSACTION')
 		cur.executemany('REPLACE INTO {} VALUES({})'.format(
 			tbl, ('?,' * 22)[:-1]), dat)
-		# cur.execute('COMMIT')
 	elif not bulk and overwrite:
 		cur.execute('REPLACE INTO {} VALUES({})'.format(
 			tbl, ('?,' * 22)[:-1]), dat)
@@ -159,9 +165,16 @@ def main():
 	else:
 		tmp = mkdtemp()
 		tfh = os.path.join(tmp, 'asm-summary.tab')
+		if opt.url is not None:
+			url = opt.url
+		elif opt.group == 'all':
+			url = ('ftp://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/'
+				'assembly_summary_{}.txt'.format(opt.db))
+		else:
+			url = ('ftp://ftp.ncbi.nlm.nih.gov/genomes/{}/{}/'
+				'assembly_summary.txt'.format(opt.db, opt.group))
 		os.system('curl --max-time 300 --silent --fail --show-error '
-			'ftp://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/'
-			'assembly_summary_{}.txt -o {}'.format(opt.db, tfh))
+			'{} -o {}'.format(url, tfh))
 		if os.path.exists(tfh) and os.path.getsize(tfh) > 0:
 			summary_file = tfh
 		else:
@@ -171,7 +184,7 @@ def main():
 			sys.exit(1)
 
 	# Output sqlite3 db from fetched or provided assembly data
-	tbl = '{}_asm_summary'.format(opt.db)
+	tbl = 'asm_summary'
 	con, cur = sql_open(ofh)
 	sql_create_table(cur, tbl)
 	with open(summary_file) as f:
@@ -188,9 +201,9 @@ def main():
 		input_data = cur.fetchall()
 		sql_close(con, cur)
 		con, cur = sql_open(ofh)
+		reload(sys)
+		sys.setdefaultencoding('UTF-8')
 		if opt.force:
-			reload(sys)  
-			sys.setdefaultencoding('UTF-8')
 			for chunk in chunk_data(input_data, rows_per_chunk=opt.rows):
 				sql_data_entry(con, cur, tbl, chunk, bulk=True, overwrite=True)
 		else:
