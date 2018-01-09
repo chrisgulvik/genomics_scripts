@@ -89,7 +89,7 @@ def main():
 	t2 = cnt_kmers(os.path.abspath(os.path.expanduser(opts.set2)), minlen)
 
 	tetmers = sorted(list(gen_kmers(4)))
-	zscores = [[t1[t] for t in tetmers], [t2[t] for t in tetmers]]
+	zscores = [[t1.get(t,0) for t in tetmers], [t2.get(t,0) for t in tetmers]]
 	r_val, p_val = pearsonr(zscores[0], zscores[1])
 	print '{}\t{}\t{}'.format(r_val, opts.set1, opts.set2)
 
