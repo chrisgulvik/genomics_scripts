@@ -24,7 +24,7 @@ def main():
 	else:
 		ofh = sys.stdout
 	with open(ifh) as i:
-		GFF.write(SeqIO.parse(i, 'genbank'), ofh)
+		GFF.write(SeqIO.parse(i, 'genbank'), ofh, include_fasta=True)
 
 if __name__ == '__main__':
 	main()
