@@ -68,7 +68,7 @@ def filter_contig(record, min_len, min_cov, gc, complexity):
 				if accepted_record:
 					return accepted_record
 		else:
-			# SKESA appends _Circ after coverage if suggested circular contig
+			# SKESA v2.2 appends _Circ after cov if suggested circular contig
 			cov_skesa = re.compile('Contig_[0-9]{1,}_[0-9]{1,}.[0-9]{1,}')
 			cov_match = cov_skesa.search(record.name)
 			if cov_match:
