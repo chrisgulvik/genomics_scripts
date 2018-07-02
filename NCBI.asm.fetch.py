@@ -27,6 +27,8 @@ def parseArgs():
 		'downloading them')
 	opt.add_argument('-m', '--format', choices=['fna', 'gbff', 'gff'],
 		default='gbff', help='file format to fetch [gbff]')
+	opt.add_argument('-n', '--info', metavar='FILE', default=None,
+		help='output tab-delimited list of sample metadata fetched')
 	opt.add_argument('-o', '--outpath', metavar='PATH',
 		help='output path where retrieved files are stored [cwd]')
 	opt.add_argument('-q', '--quiet', action='store_true', default=False,
@@ -69,13 +71,27 @@ def make_list_of_webfiles(sql_data, file_format):
 		sys.exit(1)
 	get = []
 	for row in sql_data:
-		if not row[0].startswith('ftp:'):
+		if not row[19].startswith('ftp:'):
 			sys.stderr.write('ERROR: expect FTP path but instead found '
-				'{}\n'.format(row[0]))
+				'{}\n'.format(row[19]))
 			sys.exit(1)
-		b = os.path.basename(row[0])
-		get.append('{}/{}_genomic.{}.gz'.format(row[0], b, file_format))
+		b = os.path.basename(row[19])
+		get.append('{}/{}_genomic.{}.gz'.format(row[19], b, file_format))
 	return get
+
+def generate_metadata(sql_data, file_format):
+	''' returns a list, where each item is a tab-delimited string. The first
+	column is the full filepath to fetch the file from NCBI's FTP server,
+	the remaining columns are identical to NCBI's assembly summary format
+	which hold 22 columns, e.g., Assembly Accn, BioSample, Organism, etc. '''
+	nfo = []
+	for row in sql_data:
+		b = os.path.basename(row[19])
+		# need a char for empty cells to read while-loop array with IFS tab
+		metadata = [str(s) if str(s).strip() else '.' for s in row]
+		nfo.append('{}/{}_genomic.{}.gz\t{}'.format(
+			row[19], b, file_format, '\t'.join(metadata)))
+	return nfo
 
 def main():
 	opt = parseArgs()
@@ -99,16 +115,16 @@ def main():
 	reload(sys)
 	sys.setdefaultencoding('UTF-8')
 	if opt.query_search is None:
-		cur.execute('SELECT ftp_path FROM {}'.format(tbl))
+		cur.execute('SELECT * FROM {}'.format(tbl))
 		dat = cur.fetchall()
 		get = make_list_of_webfiles(dat, opt.format)
 	else:
 		if opt.query_type == 'exact':
-			cur.execute('SELECT ftp_path FROM {} WHERE ({} = \'{}\' '
+			cur.execute('SELECT * FROM {} WHERE ({} = \'{}\' '
 				'AND version_status = "latest")'.format(
 				tbl, opt.query_feature, opt.query_search))
 		elif opt.query_type == 'substring':
-			cur.execute('SELECT ftp_path FROM {} WHERE ({} LIKE \'%{}%\' '
+			cur.execute('SELECT * FROM {} WHERE ({} LIKE \'%{}%\' '
 				'AND version_status = "latest")'.format(
 				tbl, opt.query_feature, opt.query_search))
 		dat = cur.fetchall()
@@ -141,6 +157,10 @@ def main():
 	else:
 		with open(os.path.abspath(os.path.expanduser(opt.list)), 'w') as o:
 			for ln in get:
+				o.write('{}\n'.format(''.join(ln)))
+	if opt.info is not None:
+		with open(os.path.abspath(os.path.expanduser(opt.info)), 'w') as o:
+			for ln in generate_metadata(dat, opt.format):
 				o.write('{}\n'.format(''.join(ln)))
 
 if __name__ == '__main__':
