@@ -21,11 +21,11 @@ def parseArgs():
 	opt.add_argument('-c', '--cpus', type=str, metavar='INT',
 		default='1', help='number of CPUs [1]')
 	opt.add_argument('-f', '--fraction', type=float, metavar='FLOAT',
-		default=30.0, help='minimum alignment length percentage [70.0]')
+		default=70.0, help='minimum alignment length percentage [70.0]')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
 	opt.add_argument('-i', '--identity', type=float, metavar='FLOAT',
-		default=80.0, help='minimum percent identity [30.0]')
+		default=30.0, help='minimum percent identity [30.0]')
 	opt.add_argument('-l', '--length', type=int, metavar='INT',
 		default=0, help='minimum alignment character length (sum of all '
 		'aligned segments and all gaps) [0]')
