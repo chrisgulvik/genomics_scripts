@@ -21,11 +21,11 @@ fi
 
 # Calculate full ATCG content
 grep -v '^>' "$GENOME" | tr -d [:space:] > /tmp/sequence.txt
-TOT_NUM_A=$(grep -o 'A' /tmp/sequence.txt | wc -l)
-TOT_NUM_T=$(grep -o 'T' /tmp/sequence.txt | wc -l)
-TOT_NUM_C=$(grep -o 'C' /tmp/sequence.txt | wc -l)
-TOT_NUM_G=$(grep -o 'G' /tmp/sequence.txt | wc -l)
-TOT_NUM_N=$(grep -o 'N' /tmp/sequence.txt | wc -l)
+TOT_NUM_A=$(grep -io 'A' /tmp/sequence.txt | wc -l)
+TOT_NUM_T=$(grep -io 'T' /tmp/sequence.txt | wc -l)
+TOT_NUM_C=$(grep -io 'C' /tmp/sequence.txt | wc -l)
+TOT_NUM_G=$(grep -io 'G' /tmp/sequence.txt | wc -l)
+TOT_NUM_N=$(grep -io 'N' /tmp/sequence.txt | wc -l)
 TOT_NUM_GAP=$(grep -o '-' /tmp/sequence.txt | wc -l)
 rm /tmp/sequence.txt
 
