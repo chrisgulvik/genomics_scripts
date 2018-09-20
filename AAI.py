@@ -88,7 +88,7 @@ def main():
 	tot2, filt2 = 0, 0
 	aai2, twoway = [], []
 	with open(os.path.join(outpath, 'blast.'+s1b+','+s2b+'.tab')) as dat, \
-	open(os.path.join(outpath, 'aai.'+s1b+','+s2b+'.loci.tab'), 'w') as loci:
+	open(os.path.join(outpath, 'aai.'+s2b+','+s1b+'.loci.tab'), 'w') as loci:
 		for line in dat:
 			tot2 += 1
 			l = line.split('\t')
@@ -101,7 +101,7 @@ def main():
 					twoway.extend([float(l[2]),
 									float(d1[str(l[1]), str(l[0])][0])])
 	# Write AAI data
-	with open(os.path.join(outpath, 'aai.'+s1b+','+s2b+'.stats.tab'), 'w') as aai:
+	with open(os.path.join(outpath, 'aai.'+s2b+','+s1b+'.stats.tab'), 'w') as aai:
 		aai.write('Sample(s)\tFiltered\tAAI\tStandard_Deviation\n')
 		aai.write('{},{}\t{}/{}\t{}%\t{}%\n'.format(s2b, s1b, len(twoway),
 			tot1+tot2, round(mean(twoway), 3), round(std(twoway), 3)))
