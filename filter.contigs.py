@@ -121,7 +121,7 @@ def complexity_filter(record, complexity):
 def rename_seqrec_defline(record, baseheader, i, rename_type):
 	''' renames sequence record object according to specified type '''
 	if rename_type == 'rename_keepOrig':
-		return SeqRecord.SeqRecord(id='{}_{}|'
+		return SeqRecord.SeqRecord(id='{}_{} '
 			'OrigDefln={}'.format(baseheader, i, record.id),
 			seq=record.seq, description='')
 	elif rename_type == 'rename':
