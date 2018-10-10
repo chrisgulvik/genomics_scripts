@@ -135,6 +135,10 @@ def main():
 	if not opt.quiet:
 		sys.stderr.write('INFO: fetching {} assemblies...\n\n'.format(
 			len(get)))
+	if opt.info is not None:
+		with open(os.path.abspath(os.path.expanduser(opt.info)), 'w') as o:
+			for ln in generate_metadata(dat, opt.format):
+				o.write('{}\n'.format(''.join(ln)))
 	if not opt.list:
 		sys_cmd = 'rsync --copy-links --times --human-readable '
 		if opt.quiet:
@@ -157,10 +161,6 @@ def main():
 	else:
 		with open(os.path.abspath(os.path.expanduser(opt.list)), 'w') as o:
 			for ln in get:
-				o.write('{}\n'.format(''.join(ln)))
-	if opt.info is not None:
-		with open(os.path.abspath(os.path.expanduser(opt.info)), 'w') as o:
-			for ln in generate_metadata(dat, opt.format):
 				o.write('{}\n'.format(''.join(ln)))
 
 if __name__ == '__main__':

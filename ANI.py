@@ -112,7 +112,7 @@ def main():
 		rmtree(tmp)
 
 	# Parse blast output
-	ani1, d1 = [], {}
+	ani1, d1 = [0], {}
 	tot1, filt1, len1 = 0, 0, 0 #counts for set1 as query
 	with open(os.path.join(outpath, 'blast.'+b2+','+b1+'.tab')) as dat:
 		for line in dat:
@@ -125,7 +125,7 @@ def main():
 				len1  += int(l[3])
 				ani1.append(float(l[2]))
 	tot2, filt2, len2, twowaylen = 0, 0, 0, 0 #counts for set2 as query
-	ani2, twoway = [], []
+	ani2, twoway = [0], [0]
 	with open(os.path.join(outpath, 'blast.'+b1+','+b2+'.tab')) as dat:
 		for line in dat:
 			tot2 += 1
