@@ -4,6 +4,7 @@
 import os
 import sys
 from argparse import ArgumentParser
+import subprocess as sp
 import sqlite3
 
 def parseArgs():
@@ -22,13 +23,8 @@ def parseArgs():
 		'NCBI has the same file with a newer timestamp [update]')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
-	opt.add_argument('-l', '--list', metavar='FILE', default=False,
-		help='output list of files (line-by-line) to fetch but skip '
-		'downloading them')
 	opt.add_argument('-m', '--format', choices=['fna', 'gbff', 'gff'],
 		default='gbff', help='file format to fetch [gbff]')
-	opt.add_argument('-n', '--info', metavar='FILE', default=None,
-		help='output tab-delimited list of sample metadata fetched')
 	opt.add_argument('-o', '--outpath', metavar='PATH',
 		help='output path where retrieved files are stored [cwd]')
 	opt.add_argument('-q', '--quiet', action='store_true', default=False,
@@ -50,6 +46,17 @@ def parseArgs():
 	opt.add_argument('-y', '--query-type', choices=['exact', 'substring'],
 		default='exact', help='fetch all assemblies where query term is '
 		'found within the entry or matches the full entry [exact]')
+	opt.add_argument('--info', metavar='FILE', default=None,
+		help='output tab-delimited list of sample metadata fetched')
+	opt.add_argument('--list', metavar='FILE', default=False,
+		help='output list of files (line-by-line) to fetch and skips '
+		'downloading them')
+	opt.add_argument('--contimeout', default=None, type=int,
+		help='seconds to wait for a connection to NCBI before quitting (per '
+		'file) [off]')
+	opt.add_argument('--timeout', default=None, type=int,
+		help='seconds for file transfer from NCBI before quitting (per '
+		'file) [off]')
 	return parser.parse_args()
 
 def sql_open(sql_out):
@@ -105,7 +112,7 @@ def main():
 	if os.path.exists(out) and opt.file_conflicts == 'update' \
 	and not opt.quiet:
 		sys.stderr.write('WARNING: conflicting files will be overwritten if '
-			'a newer assembly file is found...\n\n')
+			'a newer assembly file is found...\n')
 	elif not os.path.exists(out):
 		os.mkdir(out)
 
@@ -132,28 +139,39 @@ def main():
 	sql_close(con, cur)
 
 	# Fetch assembly files (or just output webfile list)
-	if not opt.quiet:
-		sys.stderr.write('INFO: fetching {} assemblies...\n\n'.format(
-			len(get)))
 	if opt.info is not None:
 		with open(os.path.abspath(os.path.expanduser(opt.info)), 'w') as o:
 			for ln in generate_metadata(dat, opt.format):
 				o.write('{}\n'.format(''.join(ln)))
+		if not opt.quiet:
+			sys.stderr.write('INFO: saved metadata for {} assemblies\n'.\
+				format(len(get)))
 	if not opt.list:
-		sys_cmd = 'rsync --copy-links --times --human-readable '
+		cmd = 'rsync --copy-links --times --human-readable '
+		if opt.contimeout:
+			cmd += '--contimeout {} '.format(opt.contimeout)
 		if opt.quiet:
-			sys_cmd += '--quiet '
-		else:
-			sys_cmd += '--verbose '
-		if opt.file_conflicts == 'update':
-			sys_cmd += '--update '
-		elif opt.file_conflicts == 'force':
-			sys_cmd += '--ignore-times '
-		elif opt.file_conflicts == 'keep':
-			sys_cmd += '--ignore-existing '
+			cmd += '--quiet '
+		if opt.timeout:
+			cmd += '--timeout {} '.format(opt.timeout)
+		conflicts = {'force': '--ignore-times ',
+			'keep': '--ignore-existing ',
+			'update': '--update '}
+		cmd += conflicts[opt.file_conflicts]
+		if not opt.quiet:
+			sys.stderr.write('INFO: fetching {} assemblies...\n'.format(
+				len(get)))
 		for url in get:
 			url = url.replace('ftp:', 'rsync:')
-			os.system(sys_cmd + '{} {} 1>&2'.format(url, out))
+			full_cmd = cmd.split() + [url, out]
+			with open(os.devnull, 'wb') as dump:
+				process = sp.Popen(full_cmd, stdout=dump, stderr=sp.PIPE)
+				_, err = process.communicate()
+				sys.stderr.write(err)
+				if process.returncode != 0:
+					sys.stderr.write('ERROR: failed system call: {}\n'.\
+						format(' '.join(full_cmd)))
+					sys.exit(1)
 			f = os.path.join(out, os.path.basename(url))
 			if (not os.path.exists(f) or os.path.getsize(f) == 0) \
 			and not opt.quiet:
@@ -162,6 +180,9 @@ def main():
 		with open(os.path.abspath(os.path.expanduser(opt.list)), 'w') as o:
 			for ln in get:
 				o.write('{}\n'.format(''.join(ln)))
+		if not opt.quiet:
+			sys.stderr.write('INFO: saved file list for {} assemblies\n'.\
+				format(len(get)))
 
 if __name__ == '__main__':
 	main()
