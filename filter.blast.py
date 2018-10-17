@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 
+import os
+import sys
 from argparse import ArgumentParser
-
 
 def parseArgs():
 	parser = ArgumentParser(description='Filters BLAST output format 6 '
@@ -26,9 +27,10 @@ def parseArgs():
 
 def main():
 	opts = parseArgs()
+	infile = os.path.abspath(os.path.expanduser(opts.infile))
 	
 	# Identify unique query labels and will not assume sorted file
-	with open(opts.infile, 'r') as ifh:
+	with open(infile, 'r') as ifh:
 		query_labels = set()
 		for ln in ifh:
 			query_labels.add(ln.split('\t')[opts.column-1])
@@ -36,7 +38,7 @@ def main():
 
 	# Filter best hits
 	best = {k: ['0']*num_cols for k in query_labels}
-	with open(opts.infile, 'r') as ifh:
+	with open(infile, 'r') as ifh:
 		for ln in ifh:
 			data = ln.rstrip('\n').split('\t')
 			if float(data[11]) > opts.bitscore and \
@@ -47,7 +49,7 @@ def main():
 	if opts.outfile is None:
 		ofh = open(os.path.abspath(os.path.expanduser(opts.outfile)), 'w')
 	else:
-		ofh = opts.outfile
+		ofh = sys.stdout
 	for val in sorted(best.values()):
 		if val != ['0']*num_cols:
 			ofh.write('\t'.join(val) + '\n')
