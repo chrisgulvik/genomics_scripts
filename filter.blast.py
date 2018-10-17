@@ -45,12 +45,12 @@ def main():
 
 	# Write output
 	if opts.outfile is None:
-		outfile = open(os.path.abspath(os.path.expanduser(opts.outfile)), 'w')
+		ofh = open(os.path.abspath(os.path.expanduser(opts.outfile)), 'w')
 	else:
-		outfile = opts.outfile
-	for k,v in sorted(best.items()):
-		if v != ['0']*num_cols:
-			o.write('\t'.join(v) + '\n')
+		ofh = opts.outfile
+	for val in sorted(best.values()):
+		if val != ['0']*num_cols:
+			ofh.write('\t'.join(val) + '\n')
 
 if __name__ == '__main__':
 	main()
