@@ -41,12 +41,12 @@ def main():
 	with open(infile, 'r') as ifh:
 		for ln in ifh:
 			data = ln.rstrip('\n').split('\t')
-			if float(data[11]) > opts.bitscore and \
+			if float(data[11]) >= opts.bitscore and \
 			float(data[11]) > float(best[data[opts.column-1]][11]):
 				best[data[opts.column-1]] = data
 
 	# Write output
-	if opts.outfile is None:
+	if opts.outfile is not None:
 		ofh = open(os.path.abspath(os.path.expanduser(opts.outfile)), 'w')
 	else:
 		ofh = sys.stdout
