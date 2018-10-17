@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 def parseArgs():
 	parser = ArgumentParser(description='Filters BLAST output format 6 '
 		'(tab-delimited) for best hit based on bitscore. '
-		'Handles additional data following bitscore (column 12).',
+		'Handles additional data columns following bitscore.',
 		add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--infile', required=True, metavar='FILE',
@@ -36,9 +36,10 @@ def main():
 		query_labels = set()
 		for ln in ifh:
 			query_labels.add(ln.split('\t')[opts.column-1])
+	num_cols = len(ln.split('\t'))
 
 	# Filter best hits
-	best = {k: ['0']*12 for k in query_labels}
+	best = {k: ['0']*num_cols for k in query_labels}
 	with open(opts.infile, 'r') as ifh:
 		for ln in ifh:
 			data = ln.rstrip('\n').split('\t')
@@ -49,7 +50,7 @@ def main():
 	# Write output
 	with open(outfile, 'w') as o:
 		for k,v in sorted(best.items()):
-			if v != ['0']*12:
+			if v != ['0']*num_cols:
 				o.write('\t'.join(v) + '\n')
 
 if __name__ == '__main__':
