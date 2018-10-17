@@ -19,17 +19,13 @@ def parseArgs():
 		default=1, help='report best hit per query label (1st column; \'1\') '
 		'or target (2nd column; \'2\') [1]')
 	opt.add_argument('-o', '--outfile', metavar='FILE',
-		default=None, help='output file [<infile>.best-filt.tab]')
+		default=None, help='output file [stdout]')
 	opt.add_argument('-s', '--bitscore', type=float, metavar='FLOAT',
 		default=0.0, help='minimum alignment Bit score [0.0]')
 	return parser.parse_args()
 
 def main():
 	opts = parseArgs()
-	if opts.outfile is None:
-		outfile = opts.infile + '.best-filt.tab'
-	else:
-		outfile = opts.outfile
 	
 	# Identify unique query labels and will not assume sorted file
 	with open(opts.infile, 'r') as ifh:
@@ -48,10 +44,13 @@ def main():
 				best[data[opts.column-1]] = data
 
 	# Write output
-	with open(outfile, 'w') as o:
-		for k,v in sorted(best.items()):
-			if v != ['0']*num_cols:
-				o.write('\t'.join(v) + '\n')
+	if opts.outfile is None:
+		outfile = open(os.path.abspath(os.path.expanduser(opts.outfile)), 'w')
+	else:
+		outfile = opts.outfile
+	for k,v in sorted(best.items()):
+		if v != ['0']*num_cols:
+			o.write('\t'.join(v) + '\n')
 
 if __name__ == '__main__':
 	main()
