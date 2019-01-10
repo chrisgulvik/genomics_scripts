@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import gzip
 import os
 import sys
 from argparse import ArgumentParser
@@ -37,8 +38,11 @@ def main():
 	query_feat   = opt.query_feature
 	query_qualif = opt.query_qualifier
 
+	if infile.endswith('.gz'):
+		infile = gzip.open(infile)
+
 	query_match = []
-	for rec in SeqIO.parse(open(infile, 'r'), 'genbank'):
+	for rec in SeqIO.parse(infile, 'genbank'):
 		for feature in rec.features:
 			if query_feat == feature.type and \
 			query_qualif in feature.qualifiers:
