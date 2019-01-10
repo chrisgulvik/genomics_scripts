@@ -53,9 +53,12 @@ def parseArgs():
 		help='skip sorting contigs by descending length')
 	opt.add_argument('--quiet-removal', default=False, action='store_true',
 		help='skip explanations for each record removal')
-	opt.add_argument('--quiet-stats', default=False, action='store_true',
+	opt.add_argument('--quiet-coverage', default=False, action='store_true',
 		help='skip reporting coverage statistics (min, Q25, mean, median, '
 		'Q75, max)')
+	opt.add_argument('--quiet-stats', default=False, action='store_true',
+		help='skip final reporting of input, discard, and output tallies '
+		'(records count, sequence lengths)')
 	opt.add_argument('--silent', default=False, action='store_true',
 		help='no screen output')
 	return parser.parse_args()
@@ -86,7 +89,7 @@ def string_is_float(s):
 		return False
 
 def require_minimum_arg_value(arg_value, arg_name, min_value):
-	if arg_value <= min_value:
+	if arg_value < min_value:
 		sys.stderr.write('ERROR: minimum {} must be at least {}\n'.\
 			format(arg_name, arg_value))
 		sys.exit(1)
@@ -227,10 +230,10 @@ def calc_normalized_median_cov(records, assembly_fmt, cov_regex,
 		Q25, _ = calc_median(srt_covs[:median_idxs[0]])
 		Q75, _ = calc_median(srt_covs[median_idxs[-1] + 1:])
 		sys.stderr.write('\nINFO: coverage quartiles of filtered records\n'
-			'    ({}cluding cov filt)\n\n'
+			'    ({}cluding cov filt)\n'
 			'    25th={:.2f}\n'
 			'    50th={:.2f}\n'
-			'    75th={:.2f}\n\n'.format(d[coverage_filter_type],
+			'    75th={:.2f}\n'.format(d[coverage_filter_type],
 				Q25, Q50, Q75))
 	return Q50
 
@@ -276,10 +279,11 @@ def main():
 	infile, outfile = args.infile, args.outfile
 	defline_rename = args.deflines
 	bool_gc, bool_complex = args.gcskew, args.complex, 
-	bool_nosortbylen, silent = args.no_sort, args.silent
+	bool_nosortbylen = args.no_sort
+	silent, quiet_coverage = args.silent, args.quiet_coverage
 	quiet_removal, quiet_stats = args.quiet_removal, args.quiet_stats
 	if silent:
-		quiet_removal = quiet_stats = True
+		quiet_removal = quiet_coverage = quiet_stats = True
 
 	# Output handling
 	if args.baseheader is None:
@@ -300,8 +304,14 @@ def main():
 		coverage_filter_type = 'abs'
 	if infile.endswith('.gz'):
 		infile = gzip.open(infile)
-	first_record = next(SeqIO.parse(infile, 'fasta'))
-	assembly_fmt, cov_regex = detect_assembly_format(first_record, silent)
+
+	# Enable skiping coverage filter
+	if float(args.cov) > 0:
+		first_record = next(SeqIO.parse(infile, 'fasta'))
+		assembly_fmt, cov_regex = detect_assembly_format(first_record, silent)
+	else:
+		assembly_fmt, cov_regex = 'post-processed', re.compile('xX0Xx')
+		quiet_coverage = True
 
 	# Filter each sequence record
 	records, discarded = [], [] #items are tuples of seqrec obj and seqlen int
@@ -335,10 +345,10 @@ def main():
 		sys.exit(1)
 	unfilt_records = [r[0] for r in records]
 	median_cov = calc_normalized_median_cov(unfilt_records, assembly_fmt,
-		cov_regex, coverage_filter_type, quiet_stats)
+		cov_regex, coverage_filter_type, quiet_coverage)
 	unfilt_coverages = [extract_coverage_value_from_defline(
 		r, assembly_fmt, cov_regex) for r in unfilt_records]
-	if not quiet_stats:
+	if not quiet_coverage:
 		min_val, max_val = min(unfilt_coverages), max(unfilt_coverages)
 		avg_cov = sum(unfilt_coverages) / float(len(unfilt_coverages))
 		d = {'abs': 'in', 'rel': 'ex'}
@@ -379,7 +389,7 @@ def main():
 			sum(n for _, n in discarded)))
 		sys.stderr.write('INFO: {} records output\n'.format(
 			len(records)))
-		sys.stderr.write('INFO: {} bp output\n'.format(
+		sys.stderr.write('INFO: {} bp output\n\n'.format(
 			sum(n for _, n in records)))
 
 	# Output records
