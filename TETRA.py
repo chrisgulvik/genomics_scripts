@@ -15,7 +15,8 @@ from scipy.stats.mstats import pearsonr
 def parseArgs():
 	parser = ArgumentParser(description='Given a pair of FastA nucleotide '
 		'files, calculates observed and expected tetranucleotide frequencies, '
-		'and reports the Pearson correlation coefficient', add_help=False)
+		'computes Z-scores for each tetranucleotide, and reports the Pearson '
+		'correlation coefficient', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-1', '--set1', required=True, metavar='FILE',
 		help='first input FastA sequence file')
