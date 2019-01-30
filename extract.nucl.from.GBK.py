@@ -17,7 +17,7 @@ def parseArgs():
 		'printed to stderr, and all matches are sent as output', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--infile', required=True, metavar='FILE',
-		help='input GenBank file with translations')
+		help='input GenBank file, optionally gunzip compressed')
 	req.add_argument('-f', '--find', required=True, metavar='STR',
 		help='string to find')
 	opt = parser.add_argument_group('Optional')
@@ -37,14 +37,17 @@ def index_genbank(rec, feature_type, qualifier) :
 			if qualifier in feat.qualifiers:
 				for s in feat.qualifiers[qualifier]:
 					if s in gb_idx:
-						sys.exit('ERROR: duplicate {}'.format(s))
+						sys.stderr.write('ERROR: duplicate {}'.format(s))
+						sys.exit(1)
 					else:
 						gb_idx[s] = i
 	return gb_idx
 
 def locus_tag2gene_seq(gbk, ft_type, query, outfile):
+	if gbk.endswith('.gz'):
+		gbk = gzip.open(gbk)
 	records = []
-	for rec in SeqIO.parse(open(gbk, 'r'), 'genbank'):
+	for rec in SeqIO.parse(gbk, 'genbank'):
 		gbk_idx = index_genbank(rec, 'CDS', ft_type)
 		if query in gbk_idx:
 			gene_seq = str(rec.features[gbk_idx[query]].extract(rec.seq))
