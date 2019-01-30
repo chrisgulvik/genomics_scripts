@@ -13,7 +13,7 @@ def parseArgs():
 		' query string and output in FastA format', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--infile', required=True,
-		help='input GenBank file')
+		help='input GenBank file, optionally gunzip compressed')
 	req.add_argument('-q', '--query', required=True,
 		help='string to search deflines')
 	opt = parser.add_argument_group('Optional')
