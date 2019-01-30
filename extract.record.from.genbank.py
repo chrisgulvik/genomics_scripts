@@ -10,24 +10,28 @@ from Bio import SeqIO
 def parseArgs():
 	parser = ArgumentParser(
 		description='extract record(s) from a GenBank file that contain a'
-		' query string and output in FastA format', add_help=False)
+		' query string and output in FastA format', add_help=False,
+		epilog='NOTE: GenBank Feature Table Definition is described at '
+		'http://www.insdc.org/files/feature_table.html')
 	req = parser.add_argument_group('Required')
-	req.add_argument('-i', '--infile', required=True,
+	req.add_argument('-i', '--infile', required=True, metavar='FILE',
 		help='input GenBank file, optionally gunzip compressed')
-	req.add_argument('-q', '--query', required=True,
+	req.add_argument('-q', '--query', required=True, metavar='STR',
 		help='string to search deflines')
 	opt = parser.add_argument_group('Optional')
 	opt.add_argument('-f', '--query-feature', default='CDS', metavar='STR',
 		help='genbank feature type to search in, e.g., CDS, gene, rRNA, '
-		'source, tRNA, misc_feature')
+		'source, tRNA, misc_feature [default: CDS]')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
-	opt.add_argument('-o', '--outfile', required=False, default=None,
-		help='FastA output [stdout]')
-	opt.add_argument('-u', '--query-qualifier', default='inference',
+	opt.add_argument('-o', '--outfile', default=None, metavar='FILE',
+		help='FastA output [default: stdout]')
+	opt.add_argument('-u', '--query-qualifier', default='product',
 		metavar='STR', help='qualifier term within each genbank feature to '
 		'search in, e.g., locus_tag, inference, codon_start, product, '
-		'transl_table, translation')
+		'transl_table, translation [default: product]')
+	opt.add_argument('-y', '--search-type', choices=['contains', 'full_exact'],
+		default='contains', help='type of query match [default: contains]')
 	return parser.parse_args()
 
 def main():
@@ -43,15 +47,20 @@ def main():
 
 	query_match = []
 	for rec in SeqIO.parse(infile, 'genbank'):
-		for feature in rec.features:
-			if query_feat == feature.type and \
-			query_qualif in feature.qualifiers:
-				list_to_search_against = feature.qualifiers[query_qualif]
-				found = [s for s in list_to_search_against if query_term in s]
+		for feat in rec.features:
+			if query_feat == feat.type and \
+			query_qualif in feat.qualifiers:
+				qual_vals = feat.qualifiers[query_qualif]
+				if opt.search_type == 'contains':
+					found = [s for s in qual_vals if query_term in s]
+				elif opt.search_type == 'full_exact':
+					found = [s for s in qual_vals if query_term == s]
 				if len(found) > 0:
 					hit = ' '.join(found)
-					query_match.append('>{} {} {}\n{}'.format(
-						inbase, hit, rec.name, feature.extract(rec.seq)))
+					locus_tag = feat.qualifiers['locus_tag'][0]
+					query_match.append('>{} {} {} {}\n{}'.format(
+						inbase, locus_tag, rec.name, hit,
+						feat.extract(rec.seq)))
 
 	if len(query_match) == 0:
 		sys.stderr.write('ERROR: {} absent in {}\n'.format(
