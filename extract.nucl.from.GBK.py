@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 
-# Example usage: python <script>.py -i input.gbk -f rpoB -t gene -o rpoB.sample.fa
-
+import gzip
 import os
 import sys
 from argparse import ArgumentParser
@@ -37,7 +36,7 @@ def index_genbank(rec, feature_type, qualifier) :
 			if qualifier in feat.qualifiers:
 				for s in feat.qualifiers[qualifier]:
 					if s in gb_idx:
-						sys.stderr.write('ERROR: duplicate {}'.format(s))
+						sys.stderr.write('ERROR: >1 {} in input\n'.format(s))
 						sys.exit(1)
 					else:
 						gb_idx[s] = i
