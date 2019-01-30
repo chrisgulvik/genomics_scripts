@@ -28,10 +28,11 @@ def parseArgs():
 		help='FastA output [default: stdout]')
 	opt.add_argument('-u', '--query-qualifier', default='product',
 		metavar='STR', help='qualifier term within each genbank feature to '
-		'search in, e.g., locus_tag, inference, codon_start, product, '
-		'transl_table, translation [default: product]')
-	opt.add_argument('-y', '--search-type', choices=['contains', 'full_exact'],
-		default='contains', help='type of query match [default: contains]')
+		'search in, e.g., gene, inference, locus_tag, old_locus_tag, '
+		'product, translation [default: product]')
+	opt.add_argument('-y', '--search-type', default='contains',
+		choices=['contains', 'full_exact'], help='type of query match '
+		'[default: contains]')
 	return parser.parse_args()
 
 def main():
