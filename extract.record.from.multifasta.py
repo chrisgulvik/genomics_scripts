@@ -9,17 +9,17 @@ from Bio import SeqIO
 
 def parseArgs():
 	parser = ArgumentParser(
-		description='extract record(s) from a multi-FastA file that contain a'
-		' query string', add_help=False)
+		description='extract record(s) from a multi-record FastA file that '
+		'have a query string match to defline(s)', add_help=False)
 	req = parser.add_argument_group('Required')
-	req.add_argument('-i', '--infile', required=True,
+	req.add_argument('-i', '--infile', required=True, metavar='FILE',
 		help='input multi-FastA file, optionally gunzip compressed')
-	req.add_argument('-q', '--query', required=True,
+	req.add_argument('-q', '--query', required=True, type=str, metavar='STR',
 		help='string to search deflines')
 	opt = parser.add_argument_group('Optional')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
-	opt.add_argument('-o', '--outfile', required=False, default=None,
+	opt.add_argument('-o', '--outfile', default=None, metavar='FILE',
 		help='FastA output [stdout]')
 	opt.add_argument('-y', '--search-type', default='contains',
 		choices=['contains', 'full_exact'], help='type of query match '
@@ -37,10 +37,10 @@ def main():
 	query_match = []
 	for record in mfasta:
 		if opt.search_type == 'contains':
-			if str(query) in record.description:
+			if query in str(record.description):
 				query_match.append(record)
 		elif opt.search_type == 'full_exact':
-			if str(query) == record.description:
+			if query == str(record.description):
 				query_match.append(record)
 
 	if len(query_match) == 0:
