@@ -7,12 +7,17 @@ from argparse import ArgumentParser
 from Bio import SeqIO
 
 def parseArgs():
-	parser = ArgumentParser(description='Converts a GenBank file containing '
-		'nucleotide sequences into a Fasta Amino Acid format (FAA) file')
-	parser.add_argument('-i', '--infile', required=True,
-		help='input GenBank Format file <.gff||.gff3>')
-	parser.add_argument('-o', '--outfile', required=False, default=None,
-		help='output Fasta Amino Acid Format (.faa) file [stdout]')
+	parser = ArgumentParser(description='Creates a Fasta Amino Acid (FAA) '
+		'formatted file of protein sequences from a GenBank flat file format',
+		add_help=False)
+	req = parser.add_argument_group('Required')
+	req.add_argument('-i', '--infile', required=True, metavar='FILE',
+		help='input GenBank file')
+	opt = parser.add_argument_group('Optional')
+	opt.add_argument('-h', '--help', action='help',
+		help='show this help message and exit')
+	opt.add_argument('-o', '--outfile', default=None,
+		help='output Fasta Amino Acid (.faa) format file [stdout]')
 	return parser.parse_args()
 
 def main():
