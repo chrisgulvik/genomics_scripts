@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 
 import gzip
@@ -77,6 +77,10 @@ def parseArgs():
 	opt.add_argument('--min-aln-len', type=require_int_nonnegative,
 		metavar='INT', default=0, help='minimum two-way alignment length of '
 		'each set [0]')
+	opt.add_argument('--name1', type=str, metavar='STR', default=None,
+		help='identifier used for set1 output data [basename set1]')
+	opt.add_argument('--name2', type=str, metavar='STR', default=None,
+		help='identifier used for set2 output data [basename set2]')
 	opt.add_argument('--refilter', default=False, action='store_true',
 		help='skip BLASTn and re-filter previous alignment data with '
 		'different cutoff parameters; overwrites output [off]')
@@ -208,13 +212,19 @@ def main():
 		cpus = str(opts.cpus)
 	dec_pts = opts.decimal_places
 	gsize, aln_frc = (0, 0), (0, 0, (0, 0))
-	set1 = os.path.abspath(os.path.expanduser(opts.set1))
-	set2 = os.path.abspath(os.path.expanduser(opts.set2))
-	b1 = os.path.basename(set1).split('.', 1)[0]
-	b2 = os.path.basename(set2).split('.', 1)[0]
+	set1 = os.path.realpath(os.path.expanduser(opts.set1))
+	set2 = os.path.realpath(os.path.expanduser(opts.set2))
+	if opts.name1 is not None:
+		b1 = opts.name1
+	else:
+		b1 = os.path.basename(opts.set1).rstrip('.gz').rsplit('.', 1)[0]
+	if opts.name2 is not None:
+		b2 = opts.name2
+	else:
+		b2 = os.path.basename(opts.set2).rstrip('.gz').rsplit('.', 1)[0]
 	tmp = mkdtemp()
 	if opts.outpath is not None:
-		outpath = os.path.abspath(os.path.expanduser(opts.outpath))
+		outpath = os.path.realpath(os.path.expanduser(opts.outpath))
 	else:
 		autocreated_dirname = 'ANI--' + strftime('%d%b%Y_%-I:%M:%S%p').upper()
 		outpath = os.path.join(os.getcwd(), autocreated_dirname)
