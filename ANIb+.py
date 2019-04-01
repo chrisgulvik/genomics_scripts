@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__version__ = '1.1.1'
+__version__ = '1.1.1b'
 
 
 import gzip
@@ -170,8 +170,8 @@ def get_seqlen_and_filter_ambiguous(infile, min_ACGT):
 			'nucleotides in {}\n'.format(ACGT_fraction * 100, 
 			os.path.basename(infile)))
 		sys.exit(1)
-	if ACGT_fraction != 1:
-		sys.stderr.write('WARNING: {:.1f}% ambiguous nucleotides detected in '
+	if ACGT_fraction != 1.:
+		sys.stderr.write('WARNING: {:.6f}% ambiguous nucleotides detected in '
 			'{}\n'.format(100 - ACGT_fraction*100, os.path.basename(infile)))
 	return seqlen
 
@@ -199,9 +199,9 @@ def count_fasta_records(infile):
 	return sum([1 for ln in open(infile).readlines() if ln.startswith('>')])
 
 def main():
+	opts = parseArgs()
 	require_dependency('blastn')
 	require_dependency('makeblastdb')
-	opts = parseArgs()
 	if opts.bed:
 		require_dependency('bedtools')
 
