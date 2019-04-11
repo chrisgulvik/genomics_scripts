@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import gzip
 import os
 import sys
 from argparse import ArgumentParser
@@ -12,7 +13,7 @@ def parseArgs():
 	'GenBank file', add_help=False)
 	req = parser.add_argument_group('Required')
 	req.add_argument('-i', '--input', required=True, metavar='FILE',
-		help='input GenBank file')
+		help='input GenBank file (optionally gunzip compressed)')
 	opt = parser.add_argument_group('Optional')
 	opt.add_argument('-h', '--help', action='help',
 		help='show this help message and exit')
@@ -23,19 +24,22 @@ def parseArgs():
 
 def main():
 	opt = parseArgs()
-	ifh = os.path.abspath(opt.input)
+	ifh = os.path.realpath(os.path.expanduser(opt.input))
 	if opt.output:
-		ofh = os.path.abspath(opt.output)
+		ofh = os.path.realpath(os.path.expanduser(opt.output))
 	else:
-		ofh = '.'.join(ifh.split('.')[:-1]) + '.fa'
+		ofh = os.path.basename(ifh).rstrip('.gz').rsplit('.', 1)[0] + '.fa'
 
 	records = []
-	with open(ifh) as i:
-		for rec in SeqIO.parse(i, 'genbank'):
-			# halt if nucleotides are absent rather than printing default 'N'
-			if float(GC(rec.seq)) == 0:
-				sys.exit('ERROR: {} appears to lack nucleotides'.format(ifh))
-			records.append(rec)
+	if ifh.endswith('.gz'):
+		ifh = gzip.open(ifh)	
+	for rec in SeqIO.parse(ifh, 'genbank'):
+		# halt if nucleotides are absent rather than printing default 'N'
+		if float(GC(rec.seq)) == 0:
+			sys.stderr.write('ERROR: {} appears to lack nucleotides\n'.\
+				format(ifh))
+			sys.exit(1)
+		records.append(rec)
 	with open(ofh, 'w') as o:
 		SeqIO.write(records, o, 'fasta')
 
