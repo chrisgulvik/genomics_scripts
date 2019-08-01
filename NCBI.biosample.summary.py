@@ -128,7 +128,6 @@ def main():
 			d['Package'] = elem.findtext('.//Package')
 
 			# Extract info from the 'Attributes' tag
-			d_attrs = {}
 			for el in elem.iterfind('.//Attribute'):
 				attribute_attrs = el.attrib
 				if 'harmonized_name' in attribute_attrs:
@@ -136,15 +135,14 @@ def main():
 					# https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/
 					# which is why JSON is used as database rather than sqlite
 					if el.text not in empty_values:
-						d_attrs[attribute_attrs['harmonized_name']] = el.text
+						d[attribute_attrs['harmonized_name']] = el.text
 				elif 'Alias' == attribute_attrs['attribute_name']:
 					d['Alias'] = el.text
 				elif 'INSDC center name' == attribute_attrs['attribute_name']:
 					d['Center'] = el.text
 				# NOTE: non-harmonized data below might be problematic; skip
 				# elif 'attribute_name' in attribute_attrs:
-				# 	d_attrs[attribute_attrs['attribute_name']] = el.text
-			d['Attributes'] = d_attrs
+				# 	d[attribute_attrs['attribute_name']] = el.text
 
 			# Extract info from the 'Links/Link' tags
 			for el in elem.iterfind('.//Links/Link'):
