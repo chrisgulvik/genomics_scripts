@@ -40,6 +40,7 @@ def decompress_file(infile, outdir):
 
 def main():
 	opt = parseArgs()
+	tmp = mkdtemp()
 
 	# Prepare or fetch summary file of biosample data
 	if opt.biosample_data:
@@ -119,7 +120,8 @@ def main():
 				d['Owner'] = ('{}, {} {}'.format(last, first, middle)).strip()
 			contact = elem.find('.//Owner/Contacts/Contact')
 			if contact is not None:
-				d['Contact'] = contact.attrib['email']
+				if 'email' in contact.attrib:
+					d['Contact'] = contact.attrib['email']
 
 			# Extract info from the 'Model' tag
 			d['Model'] = elem.findtext('.//Models/Model')
