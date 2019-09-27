@@ -97,7 +97,7 @@ def main():
 
 	# Output specified positions with FastA format
 	if opt.outfile is not None:
-		outfile = os.path.abspath(os.path.expanduser(outfile))
+		outfile = os.path.abspath(os.path.expanduser(opt.outfile))
 		SeqIO.write(records, outfile, 'fasta')
 	else:
 		try:
