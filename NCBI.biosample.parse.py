@@ -59,13 +59,6 @@ def parseArgs():
 		help='strain number')
 	return parser.parse_args()
 
-def decompress_file(infile, outdir):
-	uncompressed_file = os.path.basename(infile).rstrip('.gz')
-	outfile = os.path.join(outdir, uncompressed_file)
-	with gzip.open(infile, 'rb') as ifh, open(outfile, 'wb') as ofh:
-		shutil.copyfileobj(ifh, ofh)
-	return outfile
-
 def find_entries(queries, data, field, search_type):
 	all_found_records = {}
 	if search_type == 'full':
