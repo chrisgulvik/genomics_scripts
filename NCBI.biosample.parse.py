@@ -15,8 +15,6 @@ def parseArgs():
 	req.add_argument('-i', '--infile', required=True, metavar='FILE',
 		help='input JSON database file')
 	opt = parser.add_argument_group('Optional')
-	opt.add_argument('-d', '--out-db', metavar='FILE', default=None,
-		help='SQLite3 output file [None]')
 	opt.add_argument('-e', '--empty', metavar='STR', type=str, default='',
 		help='character or string to denote empty value [None]')
 	opt.add_argument('-h', '--help', action='help',
@@ -63,14 +61,22 @@ def find_entries(queries, data, field, search_type):
 	all_found_records = {}
 	if search_type == 'full':
 		for qry in queries:
-			found = {k: v for k, v in data.items() if v[field] == qry}
+			try:
+				found = {k: v for k, v in data.items() if v[field] == qry}
+			except KeyError:
+				sys.stderr.write('ERROR: {} absent in db\n'.format(field))
+				sys.exit(1)
 			if len(found) == 0:
 				sys.stderr.write('ERROR: {} {} absent\n'.format(qry, field))
 				sys.exit(1)
 			all_found_records.update(found)
 	elif search_type == 'prefix':
 		for qry in queries:
-			found = {k:v for k, v in data.items() if v[field].startswith(qry)}
+			try:
+				found = {k: v for k, v in data.items() if v[field].startswith(qry)}
+			except KeyError:
+				sys.stderr.write('ERROR: {} absent in db\n'.format(field))
+				sys.exit(1)
 			if len(found) == 0:
 				sys.stderr.write('ERROR: {} {} absent\n'.format(qry, field))
 				sys.exit(1)
@@ -95,6 +101,10 @@ def main():
 	cnt_biosamples = len(json_d)
 	sys.stderr.write('INFO: input has {} biosample entries\n'.format(
 		cnt_biosamples))
+	if cnt_biosamples < 1:
+		sys.stderr.write('ERROR: at least one biosample entry required\n'.\
+			format(cnt_biosamples))
+		sys.exit(1)
 
 	# Record filtering
 	find_l = [(opt.find_biosample, 'BioSample', 'key'),
@@ -133,13 +143,13 @@ def main():
 	num_records = len(d)
 	if num_records < opt.min_records:
 		sys.stderr.write('ERROR: {} records matching query less than {}'
-			' --min-records spcified\n'.format(num_records,
+			' --min-records specified\n'.format(num_records,
 			opt.min_records))
 		sys.exit(1)
 	if opt.max_records is not None:
 		if opt.max_records < num_records:
 			sys.stderr.write('ERROR: {} records matching query greater than'
-				' {} --max-records spcified\n'.format(num_records,
+				' {} --max-records specified\n'.format(num_records,
 				opt.max_records))
 			sys.exit(1)
 
