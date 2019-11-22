@@ -28,8 +28,8 @@ def parseArgs():
 def multi_gbk(acc_list, minlen, gbk):
 	fetched = Entrez.efetch(db='nucleotide', id=acc_list,
 		rettype='gbwithparts', retmode='text').read().rstrip('\n')
-	print '\tfound {} GenBank records'.format(
-		str(len(fetched.split('//\n\n'))))
+	print('\tfound {} GenBank records'.format(
+		str(len(fetched.split('//\n\n')))))
 	if len(fetched) < minlen:
 		sys.exit('ERROR: suspiciously short GenBank record')
 	contigs = []
@@ -69,7 +69,7 @@ def get_gbk(accession, minlen, gbk):
 						str('{num:08d}'.format(num=s)) for s in acc_suffs] )
 				else: #just one accession specified such as NZ_JPNX00000000.2
 					wgs_acc_list.append(line.split()[1])
-		print ('\t{} accession is an incomplete chromosome.\n'
+		print('\t{} accession is an incomplete chromosome.\n'
 		'\tRetrieving {} individual contigs...'.format(
 			accession, str(len(wgs_acc_list))))
 		time.sleep(3)  #be nice to NCBI before doing a second efetch request
@@ -80,7 +80,7 @@ def get_gbk(accession, minlen, gbk):
 	else:
 		with open(gbk, 'w') as of:
 			of.write(fetched)
-		print '\tfound {}'.format(accession)
+		print('\tfound {}'.format(accession))
 
 def main():
 	opts = parseArgs()
@@ -88,9 +88,17 @@ def main():
 	minlen = opts.min_length
 	Entrez.email = 'yourname@univ.edu'
 
+	# just in case an accession was passed as a comma-separated string, split
+	if any(',' in a for a in acc):
+		split_accessions = []
+		for accessions_string in acc:
+			for accession in accessions_string.split(','):
+				split_accessions.append(accession)
+		acc = split_accessions
+
 	# handle outfile naming
 	if opts.outfile is not None:
-		out = os.path.abspath(opts.outfile)
+		out = os.path.realpath(opts.outfile)
 	elif len(acc) == 1:
 		out = os.path.join(os.getcwd(), '{}.gbk'.format(acc[0]))
 	elif len(acc) > 1:
