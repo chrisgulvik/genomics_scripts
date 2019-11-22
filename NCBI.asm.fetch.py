@@ -69,9 +69,8 @@ def sql_open(sql_out):
 		con = sqlite3.connect(sql_out)
 		cur = con.cursor()
 		return con, cur
-	except Error as e:
-		sys.stderr.write('ERROR: {}\n'.format(e))
-		sys.exit(1)
+	except:
+		raise
 
 def sql_close(con, cur):
 	cur.close()
