@@ -2,6 +2,7 @@
 
 
 import csv
+import gzip
 import multiprocessing as mp
 import os
 import shutil
@@ -75,7 +76,7 @@ def calc_sequence_lengths(args):
 	if infile.endswith('.gz'):
 		tmp_outfile = os.path.join(tempdir,
 			os.path.basename(infile).rstrip('.gz'))
-		with gzip.open(infile) as ifh, open(tmp_outfile) as ofh:
+		with gzip.open(infile) as ifh, open(tmp_outfile, 'w') as ofh:
 			shutil.copyfileobj(ifh, ofh)
 		infile = tmp_outfile
 	outfile = os.path.join(tempdir, os.path.basename(infile) + '.len')
