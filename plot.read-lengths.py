@@ -159,6 +159,13 @@ def calc_sequence_lengths(args):
 					except KeyError:
 						pass
 		fast5_file.close()
+	elif infile.endswith('.fasta') or infile.endswith('.fa'):
+		with open(infile) as ifh, open(outfile, 'w') as ofh:
+			for rec in SeqIO.parse(ifh, 'fasta'):
+				sequence_length = len(rec.seq)
+				if min_length < sequence_length < max_length:
+					i += 1
+					ofh.write(str(sequence_length) + os.linesep)
 	if i < 1:
 		sys.stderr.write('INFO: no sequences between {} and {:,.0f}'
 			' found in {}\n'.format(min_length, max_length, infile))
