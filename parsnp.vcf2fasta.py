@@ -66,5 +66,5 @@ for sample in samples_l:
 	if len(snps) != snp_len:
 		sys.stderr.write('ERROR: unequal sequence records printed\n')
 	else:
-		print '>{}'.format(sample)
-		print snps
+		print('>{}'.format(sample))
+		print(snps)
