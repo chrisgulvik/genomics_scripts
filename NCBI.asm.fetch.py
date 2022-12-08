@@ -82,8 +82,8 @@ def make_list_of_webfiles(sql_data, file_format):
 		sys.exit(1)
 	get = []
 	for row in sql_data:
-		if not row[19].startswith('ftp:'):
-			sys.stderr.write('ERROR: expect FTP path but instead found '
+		if not row[19].startswith(('ftp:', 'https:')):
+			sys.stderr.write('ERROR: expect FTP or HTTPS path but instead found '
 				'{}\n'.format(row[19]))
 			sys.exit(1)
 		b = os.path.basename(row[19])
