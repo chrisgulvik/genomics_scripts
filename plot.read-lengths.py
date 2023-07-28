@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import csv
@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 from glob import glob
 from multiprocessing import cpu_count
 from tempfile import mkdtemp
-from StringIO import StringIO
+from io import StringIO
 
 import numpy as np
 import seaborn as sns
