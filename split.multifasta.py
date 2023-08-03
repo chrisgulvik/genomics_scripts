@@ -5,7 +5,6 @@ import os
 import sys
 from argparse import ArgumentParser
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
@@ -63,7 +62,7 @@ def main():
 			i += 1
 
 		# Output each record as separate file
-		new_rec = SeqRecord(Seq(seq, generic_dna), id=pref + suff,
+		new_rec = SeqRecord(Seq(seq), id=pref + suff,
 			description='')
 		SeqIO.write(new_rec, os.path.join(outdir, pref + suff + opt.ext),
 			'fasta')
