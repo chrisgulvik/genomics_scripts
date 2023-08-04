@@ -42,7 +42,7 @@ def main():
     else:
         outdir = os.path.abspath(os.path.expanduser(opt.outdir))
     if not os.path.exists(outdir):
-        os.mkdir(outdir)
+        os.makedirs(outdir)
     mfasta = SeqIO.parse(infile, 'fasta')
 
     i = 1
