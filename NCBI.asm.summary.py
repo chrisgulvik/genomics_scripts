@@ -42,18 +42,18 @@ def parseArgs():
 		'--force for handling entry conflicts')
 	opt.add_argument('-q', '--quiet', action='store_true', default=False,
 		help='hide messages when entries are updated or added [off]')
-	opt.add_argument('-r', '--rows', metavar='INT', type=int, default=200000,
+	opt.add_argument('-r', '--rows', metavar='INT', type=int, default=400000,
 		help='number of data summary rows to simultaneously add to SQLite '
 		'database at once; useful for speed optimization; default takes 5 '
-		'sec for refseq whereas naive insertion of 1 takes 7 min [200000]')
+		'sec for refseq whereas naive insertion of 1 takes 7 min [400000]')
 	opt.add_argument('-s', '--summary-data', metavar='FILE',
-		help='tab-delimited local file of assembly summary data (23-column '
+		help='tab-delimited local file of assembly summary data (38-column '
 		'format as NCBI has specified in ftp://ftp.ncbi.nlm.nih.gov/genomes/'
 		'ASSEMBLY_REPORTS/README_assembly_summary.txt) rather than directly '
 		'fetching from NCBI\'s FTP site; especially useful if FTP is '
 		'blocked or creating custom database')
 	opt.add_argument('-u', '--url', metavar='STR', type=str, default=None,
-		help='web address to file of assembly summary data (23-column); '
+		help='web address to file of assembly summary data (38-column); '
 		'for bypassing NCBI access (e.g., EMBL-EBI) without locally storing '
 		'the file')
 	return parser.parse_args()
@@ -76,7 +76,14 @@ def sql_close(con, cur):
 
 def sql_create_table(cur, tbl):
 	# NOTE: the 23rd column 'asm_not_live_date' was added some time between
-	#  years 2019 and 2021; before that only the first 22 columns existed
+	#  years 2019 and 2021; before that only the first 22 columns existed.
+	# NOTE: May 23, 2023 there's now 38 columns! The new "group" column had
+	#  to be changed to "group_name" to prevent the fail on error message
+	#  'sqlite3.OperationalError: near "group": syntax error' because "group"
+	#  alone cannot be used for this. "GROUP" is a reserved keyword in SQL,
+	#  often used in the context of GROUP BY in queries. If you're using
+	#  "GROUP" as a column or table name, consider renaming it to avoid
+	#  conflicts.
 	cur.execute('''
 		CREATE TABLE IF NOT EXISTS {} (
 		assembly_accession TEXT UNIQUE NOT NULL,
@@ -101,22 +108,37 @@ def sql_create_table(cur, tbl):
 		ftp_path TEXT NOT NULL,
 		excluded_from_refseq TEXT,
 		relation_to_type_material TEXT,
-		asm_not_live_date TEXT
+		asm_not_live_date TEXT,
+		assembly_type TEXT,
+		group_name TEXT,
+		genome_size INT,
+		genome_size_ungapped INT,
+		gc_percent REAL,
+		replicon_count INT,
+		scaffold_count INT,
+		contig_count INT,
+		annotation_provider TEXT,
+		annotation_name TEXT,
+		annotation_date TEXT,
+		total_gene_count INT,
+		protein_coding_gene_count INT,
+		non_coding_gene_count INT,
+		pubmed_id TEXT
 	)'''.format(tbl))
 
 def sql_data_entry(con, cur, tbl, dat, bulk=False, overwrite=False):
 	if bulk and not overwrite:
 		cur.executemany('INSERT INTO {} VALUES({})'.format(
-			tbl, ('?,' * 23)[:-1]), dat)
+			tbl, ('?,' * 38)[:-1]), dat)
 	elif bulk and overwrite:
 		cur.executemany('REPLACE INTO {} VALUES({})'.format(
-			tbl, ('?,' * 23)[:-1]), dat)
+			tbl, ('?,' * 38)[:-1]), dat)
 	elif not bulk and overwrite:
 		cur.execute('REPLACE INTO {} VALUES({})'.format(
-			tbl, ('?,' * 23)[:-1]), dat)
+			tbl, ('?,' * 38)[:-1]), dat)
 	else:
 		cur.execute('INSERT INTO {} VALUES({})'.format(
-			tbl, ('?,' * 23)[:-1]), dat)
+			tbl, ('?,' * 38)[:-1]), dat)
 	con.commit()
 
 def sql_query(cur, tbl, query, quiet):
@@ -161,8 +183,8 @@ def main():
 		with open(summary_file) as f:
 			ln = next(f)
 			num_col = len(ln.split('\t'))
-		if num_col != 23:
-			sys.stderr.write('ERROR: expect 23 data columns from input '
+		if num_col != 38:
+			sys.stderr.write('ERROR: expect 38 data columns from input '
 				'summary file; contains {} columns\n'.format(num_col))
 			sys.exit(1)
 	else:
